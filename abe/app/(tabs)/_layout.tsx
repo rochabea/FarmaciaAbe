@@ -1,52 +1,30 @@
 import React from 'react';
-import FontAwesome from '@expo/vector-icons/FontAwesome';
-import { Link, Tabs } from 'expo-router';
-import { Pressable, StyleSheet, View } from 'react-native';
-
-import Colors from '@/constants/Colors';
-import { useColorScheme } from '@/components/useColorScheme';
-import { useClientOnlyValue } from '@/components/useClientOnlyValue';
-
-function TabBarIcon(props: {
-  name: React.ComponentProps<typeof FontAwesome>['name'];
-  color: string;
-}) {
-  return <FontAwesome size={24} style={{ marginBottom: -3 }} {...props} />;
-}
+import { Image, Pressable, StyleSheet, View } from 'react-native';
+import { Tabs } from 'expo-router';
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
-
   return (
     <Tabs
       screenOptions={{
-        headerShown: useClientOnlyValue(false, true),
+        headerShown: false,
         tabBarShowLabel: false,
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
         tabBarStyle: {
-          height: 80,
+          height: 70,
           backgroundColor: '#fff',
           borderTopWidth: 0,
           elevation: 10,
         },
       }}
     >
-      {/* 1ª aba: Início */}
+      {/* 1ª aba: Home */}
       <Tabs.Screen
-        name="index"
+        name="home"
         options={{
-          title: 'Início',
-          tabBarIcon: ({ color }) => <TabBarIcon name="home" color={color} />,
-          headerRight: () => (
-            <Link href="/modal" asChild>
-              <Pressable style={{ marginRight: 15 }}>
-                <FontAwesome
-                  name="info-circle"
-                  size={24}
-                  color={Colors[colorScheme ?? 'light'].text}
-                />
-              </Pressable>
-            </Link>
+          tabBarIcon: ({ focused }) => (
+            <Image
+              source={require('../../assets/images/home.png')}
+              style={[styles.icon, focused && { tintColor: '#242760' }]}
+            />
           ),
         }}
       />
@@ -55,43 +33,55 @@ export default function TabLayout() {
       <Tabs.Screen
         name="sacola"
         options={{
-          title: 'Sacola',
-          tabBarIcon: ({ color }) => <TabBarIcon name="shopping-cart" color={color} />,
+          tabBarIcon: ({ focused }) => (
+            <Image
+              source={require('../../assets/images/sacola.png')}
+              style={[styles.icon, focused && { tintColor: '#242760' }]}
+            />
+          ),
         }}
       />
 
-      {/* 3ª aba: Busca (botão central com estado ativo) */}
-      {/* 3ª aba: Busca (botão central elevado) */}
-    <Tabs.Screen
-      name="busca"
-      options={{
-        title: 'Busca',
-        tabBarIcon: ({ color, focused }) => (
-          <View style={styles.fabWrapper}>
-            <View style={[styles.fab, focused && styles.fabActive]}>
-              <FontAwesome name="search" size={28} color={focused ? Colors.light.tint : '#fff'} />
-            </View>
-          </View>
-        ),
-      }}
-    />
-
-
-      {/* 4ª aba: Favoritos */}
+      {/* 3ª aba: Buscar (botão central) */}
       <Tabs.Screen
-        name="favoritos"
+        name="busca"
         options={{
-          title: 'Favoritos',
-          tabBarIcon: ({ color }) => <TabBarIcon name="star" color={color} />,
+          tabBarIcon: ({ focused }) => (
+            <View style={styles.fabWrapper}>
+              <View style={[styles.fab, focused && styles.fabActive]}>
+                <Image
+                  source={require('../../assets/images/buscar.png')}
+                  style={{ width: 28, height: 28 }}
+                />
+              </View>
+            </View>
+          ),
         }}
       />
 
-      {/* 5ª aba: Conta */}
+      {/* 4ª aba: Configuração */}
+      <Tabs.Screen
+        name="configuracao"
+        options={{
+          tabBarIcon: ({ focused }) => (
+            <Image
+              source={require('../../assets/images/configuracao.png')}
+              style={[styles.icon, focused && { tintColor: '#242760' }]}
+            />
+          ),
+        }}
+      />
+
+      {/* 5ª aba: Perfil */}
       <Tabs.Screen
         name="conta"
         options={{
-          title: 'Conta',
-          tabBarIcon: ({ color }) => <TabBarIcon name="user" color={color} />,
+          tabBarIcon: ({ focused }) => (
+            <Image
+              source={require('../../assets/images/perfil.png')}
+              style={[styles.icon, focused && { tintColor: '#242760' }]}
+            />
+          ),
         }}
       />
     </Tabs>
@@ -99,9 +89,10 @@ export default function TabLayout() {
 }
 
 const styles = StyleSheet.create({
+  icon: { width: 30, height: 30 },
   fabWrapper: {
     position: 'absolute',
-    top: -15,
+    top: -20,
     left: 0,
     right: 0,
     alignItems: 'center',
@@ -111,18 +102,12 @@ const styles = StyleSheet.create({
     width: 70,
     height: 70,
     borderRadius: 35,
-    backgroundColor: '#8A8A8A',
+    backgroundColor: '#242760',
     alignItems: 'center',
     justifyContent: 'center',
-    // sombra iOS
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    // sombra Android
     elevation: 8,
   },
   fabActive: {
-    backgroundColor: '#E3F2FD',
+    backgroundColor: '#4A5CD3', // cor do botão central quando ativo
   },
 });
