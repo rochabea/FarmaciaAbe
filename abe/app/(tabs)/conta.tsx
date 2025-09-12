@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, Image, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 
+
 export default function Profile() {
   const router = useRouter();
 
@@ -11,11 +12,11 @@ export default function Profile() {
 
   // Cada ação tem seu próprio ícone à esquerda e à direita
   const actions = [
-    { name: 'Editar Perfil', route: '/editar-perfil', iconLeft: require('../../assets/images/editarC.png'), iconRight: require('../../assets/images/seta-direita.png') },
+    { name: 'Editar Perfil', route: '/sacola', iconLeft: require('../../assets/images/editarC.png'), iconRight: require('../../assets/images/seta-direita.png') },
     { name: 'Meus Pedidos', route: '/sacola', iconLeft: require('../../assets/images/sacolaC.png'), iconRight: require('../../assets/images/seta-direita.png') },
-    { name: 'Histórico', route: '/historico', iconLeft: require('../../assets/images/historicoC.png'), iconRight: require('../../assets/images/seta-direita.png') },
-    { name: 'Privacidade', route: '/privacidade', iconLeft: require('../../assets/images/privacidade.png'), iconRight: require('../../assets/images/seta-direita.png') },
-    { name: 'Configurações', route: '/configuracao', iconLeft: require('../../assets/images/configuracaoC.png'), iconRight: require('../../assets/images/seta-direita.png') },
+    { name: 'Histórico', route: '/sacola', iconLeft: require('../../assets/images/historicoC.png'), iconRight: require('../../assets/images/seta-direita.png') },
+    { name: 'Privacidade', route: '/sacola', iconLeft: require('../../assets/images/privacidade.png'), iconRight: require('../../assets/images/seta-direita.png') },
+    { name: 'Configurações', route: '/sacola', iconLeft: require('../../assets/images/configuracaoC.png'), iconRight: require('../../assets/images/seta-direita.png') },
   ];
 
   return (
@@ -43,7 +44,7 @@ export default function Profile() {
           <TouchableOpacity
             key={item.name}
             style={styles.actionItem}
-            onPress={() => router.push(item.route)}
+            onPress={() => router.push(item.route as any)}
           >
             <View style={styles.actionContent}>
               <Image source={item.iconLeft} style={styles.actionIcon} />
