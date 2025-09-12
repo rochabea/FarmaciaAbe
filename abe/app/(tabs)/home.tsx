@@ -12,9 +12,10 @@ export default function TabOneScreen() {
   ];
 
   const highlights = [
-    { name: 'Destaque 1', icon: require('../../assets/images/remedio.png') },
-    { name: 'Destaque 2', icon: require('../../assets/images/remedio.png') },
-    { name: 'Destaque 3', icon: require('../../assets/images/remedio.png') },
+    { name: 'Aspirina', icon: require('../../assets/images/remedio.png') },
+    { name: 'Paracetamol', icon: require('../../assets/images/remedio.png') },
+    { name: 'Ibuprofeno', icon: require('../../assets/images/remedio.png') },
+    { name: 'Vitamina C', icon: require('../../assets/images/remedio.png') },
   ];
 
   return (
@@ -37,7 +38,7 @@ export default function TabOneScreen() {
         {showOffer && (
           <View style={styles.offerBox}>
             <Image source={require('../../assets/images/percent.png')} style={styles.offerPercent} />
-            <Text style={styles.offerTitle}>Oferta</Text>
+            <Text style={styles.offerTitle}>OFERTAS</Text>
             <Text style={styles.offerSubtitle}>Veja as ofertas da semana</Text>
             <TouchableOpacity style={styles.closeButton} onPress={() => setShowOffer(false)}>
               <Text style={{ color: '#000000ff' }}>X</Text>
@@ -56,67 +57,81 @@ export default function TabOneScreen() {
           ))}
         </ScrollView>
 
-        {/* Destaques */}
+        {/* Destaques em grid 2x2 */}
         <Text style={styles.sectionTitle}>Destaques</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ paddingLeft: 20 }}>
+        <View style={styles.highlightsGrid}>
           {highlights.map((item, index) => (
-            <View key={index} style={styles.highlightBox}>
-              <Image source={item.icon} style={styles.highlightIcon} resizeMode="contain" />
-              <Text style={styles.highlightText}>{item.name}</Text>
+            <View key={index} style={styles.highlightBoxGrid}>
+              <Image source={item.icon} style={styles.highlightIconGrid} resizeMode="contain" />
+
+              {/* Conteúdo do card alinhado à esquerda */}
+              <View style={{ width: '100%', paddingHorizontal: 10 }}>
+                <Text style={styles.highlightName}>{item.name}</Text>
+                <Text style={styles.highlightSubtitle}>Oferta por</Text>
+                <Text style={styles.highlightPrice}>R$ 10,99</Text>
+              </View>
             </View>
           ))}
-        </ScrollView>
+        </View>
       </ScrollView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  
+
   container: { 
     flex: 1, 
     backgroundColor: '#fff', 
-    paddingTop: 40 },
+    paddingTop: 40 
+  },
 
   header: { 
     flexDirection: 'row', 
     justifyContent: 'space-between', 
     alignItems: 'center', 
-    paddingHorizontal: 20 },
+    paddingHorizontal: 20 
+  },
 
   icon: { 
     width: 30, 
-    height: 30 },
+    height: 30 
+  },
 
   logo: { 
     width: 100, 
-    height: 40 },
+    height: 40 
+  },
 
   offerBox: { 
     margin: 20, 
     backgroundColor: '#F4F4F7', 
     borderRadius: 12, 
     padding: 20, 
-    position: 'relative' },
+    position: 'relative' 
+  },
 
   offerTitle: { 
-    fontSize: 18, 
+    fontSize: 25, 
     fontWeight: '700', 
     color: '#242760', 
-    marginLeft: 60 },
+    marginLeft: 90 
+  },
 
   offerSubtitle: { 
     fontSize: 14, 
     color: '#000', 
     marginTop: 5, 
-    marginLeft: 60 },
+    marginLeft: 90 
+  },
 
   offerPercent: { 
-    width: 50, 
-    height: 50, 
+    width: 83, 
+    height: 83, 
     position: 'absolute', 
-    left: 20, 
-    top: 20 },
+    left: 5, 
+    top: 5 
+  },
 
   closeButton: { 
     position: 'absolute', 
@@ -127,7 +142,8 @@ const styles = StyleSheet.create({
     width: 25, 
     height: 25, 
     justifyContent: 'center', 
-    alignItems: 'center' },
+    alignItems: 'center' 
+  },
 
   sectionTitle: { 
     fontSize: 18, 
@@ -135,7 +151,8 @@ const styles = StyleSheet.create({
     color: '#242760', 
     marginTop: 20, 
     marginBottom: 10, 
-    paddingLeft: 20 },
+    paddingLeft: 20 
+  },
 
   categoryBox: { 
     width: 120, 
@@ -144,36 +161,67 @@ const styles = StyleSheet.create({
     justifyContent: 'center', 
     alignItems: 'center', 
     marginRight: 15, 
-    backgroundColor: '#F4F4F7' },
+    backgroundColor: '#F4F4F7' 
+  },
 
   categoryIcon: { 
     width: 40, 
     height: 40, 
-    marginBottom: 5 },
+    marginBottom: 5 
+  },
 
   categoryText: { 
     fontSize: 14, 
     fontWeight: '600', 
     color: '#242760', 
-    textAlign: 'center' },
-
-  highlightBox: { 
-    width: 150, 
-    height: 150, 
-    marginRight: 15, 
-    borderRadius: 12, 
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#F4F4F7' },
-
-  highlightIcon: { 
-    width: 80, 
-    height: 80, 
-    marginBottom: 5 },
-
-  highlightText: { 
-    color: '#242760', 
-    fontWeight: '600', 
     textAlign: 'center' 
+  },
+
+  highlightsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+  },
+
+  highlightBoxGrid: {
+    width: '48%',
+    height: 180,
+    marginBottom: 15,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'flex-start', 
+    backgroundColor: '#F4F4F7',
+  },
+
+  highlightIconGrid: {
+    width: 93,
+    height: 67,
+    alignSelf: 'center', 
+    marginBottom: 5,
+  },
+
+  highlightName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#242760',
+    textAlign: 'left',
+    marginTop: 5,
+  },
+
+  highlightSubtitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#000000ff',
+    textAlign: 'left',
+    marginTop: 5,
+  },
+
+  highlightPrice: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#000000ff',
+    textAlign: 'left',
+    marginTop: 2,
   },
 });
