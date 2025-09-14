@@ -45,8 +45,6 @@ export default function Orders() {
           <Image source={require('../../assets/images/sacolaA.png')} style={styles.sacolaIcon} />
         </View>
       </View>
-
-      {/* Espaço para que as caixas não fiquem sobre o círculo */}
       <View style={{ height: 80 }} />
 
       {/* Lista de pedidos */}
