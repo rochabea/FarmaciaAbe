@@ -14,7 +14,7 @@ export default function Profile() {
     { name: 'Meus Pedidos', route: '/pedidos', iconLeft: require('../../assets/images/sacolaC.png'), iconRight: require('../../assets/images/seta-direita.png') },
     { name: 'Histórico', route: '/historico', iconLeft: require('../../assets/images/historicoC.png'), iconRight: require('../../assets/images/seta-direita.png') },
     { name: 'Privacidade', route: '/privacidade', iconLeft: require('../../assets/images/privacidade.png'), iconRight: require('../../assets/images/seta-direita.png') },
-    { name: 'Configurações', route: '/configuracoes', iconLeft: require('../../assets/images/configuracaoC.png'), iconRight: require('../../assets/images/seta-direita.png') },
+    { name: 'Configurações', route: '/configuracao', iconLeft: require('../../assets/images/configuracaoC.png'), iconRight: require('../../assets/images/seta-direita.png') },
   ];
 
   return (
@@ -98,7 +98,7 @@ const styles = StyleSheet.create({
   backButton: {
     position: 'absolute',
     left: 20,
-    top: 92,
+    top: 98,
   },
 
   backIcon: {
