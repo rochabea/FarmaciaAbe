@@ -57,14 +57,14 @@ export default function TabOneScreen() {
           ))}
         </ScrollView>
 
-        {/* Destaques em grid 2x2 */}
+        {/* Destaques*/}
         <Text style={styles.sectionTitle}>Destaques</Text>
         <View style={styles.highlightsGrid}>
           {highlights.map((item, index) => (
             <View key={index} style={styles.highlightBoxGrid}>
               <Image source={item.icon} style={styles.highlightIconGrid} resizeMode="contain" />
 
-              {/* Conteúdo do card alinhado à esquerda */}
+              {/* Conteúdo do card*/}
               <View style={{ width: '100%', paddingHorizontal: 10 }}>
                 <Text style={styles.highlightName}>{item.name}</Text>
                 <Text style={styles.highlightSubtitle}>Oferta por</Text>
