@@ -2,50 +2,54 @@ import React from 'react';
 import { View, Text, Image, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 
-
 export default function Profile() {
   const router = useRouter();
 
   const userName = 'Ana Beatriz';
   const userAddress = 'Rua Exemplo, 123 - Cidade';
-  const userImage = 'https://placekitten.com/200/200';
 
-  // Cada ação tem seu próprio ícone à esquerda e à direita
+  // Lista de ações do perfil
   const actions = [
-    { name: 'Editar Perfil', route: '/sacola', iconLeft: require('../../assets/images/editarC.png'), iconRight: require('../../assets/images/seta-direita.png') },
-    { name: 'Meus Pedidos', route: '/sacola', iconLeft: require('../../assets/images/sacolaC.png'), iconRight: require('../../assets/images/seta-direita.png') },
-    { name: 'Histórico', route: '/sacola', iconLeft: require('../../assets/images/historicoC.png'), iconRight: require('../../assets/images/seta-direita.png') },
-    { name: 'Privacidade', route: '/sacola', iconLeft: require('../../assets/images/privacidade.png'), iconRight: require('../../assets/images/seta-direita.png') },
-    { name: 'Configurações', route: '/sacola', iconLeft: require('../../assets/images/configuracaoC.png'), iconRight: require('../../assets/images/seta-direita.png') },
+    { name: 'Editar Perfil', route: '/editarPerfil', iconLeft: require('../../assets/images/editarC.png'), iconRight: require('../../assets/images/seta-direita.png') },
+    { name: 'Meus Pedidos', route: '/pedidos', iconLeft: require('../../assets/images/sacolaC.png'), iconRight: require('../../assets/images/seta-direita.png') },
+    { name: 'Histórico', route: '/historico', iconLeft: require('../../assets/images/historicoC.png'), iconRight: require('../../assets/images/seta-direita.png') },
+    { name: 'Privacidade', route: '/privacidade', iconLeft: require('../../assets/images/privacidade.png'), iconRight: require('../../assets/images/seta-direita.png') },
+    { name: 'Configurações', route: '/configuracoes', iconLeft: require('../../assets/images/configuracaoC.png'), iconRight: require('../../assets/images/seta-direita.png') },
   ];
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      {/* Topo com fundo azul */}
+      {/* Topo azul arredondado */}
       <View style={styles.topRect}>
         <Text style={styles.topTitle}>Perfil</Text>
+
+        {/* Botão de voltar */}
+        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+          <Image source={require('../../assets/images/seta-esquerda.png')} style={styles.backIcon} />
+        </TouchableOpacity>
+
+        {/* Notificação */}
         <TouchableOpacity style={styles.notification}>
           <Image source={require('../../assets/images/notificacaoB.png')} style={styles.notificationIcon} />
         </TouchableOpacity>
 
-        {/* Círculo da foto de perfil */}
+        {/* Foto de perfil */}
         <View style={styles.oval}>
-          <Image source={{ uri: userImage }} style={styles.profileImage} />
+          <Image source={require('../../assets/images/perfilfoto.png')} style={styles.profileImage} />
         </View>
       </View>
 
       {/* Nome e endereço */}
       <Text style={styles.userName}>{userName}</Text>
-      <Text style={styles.userAddress}>{userAddress}</Text>
+      <View style={styles.addressContainer}>
+        <Image source={require('../../assets/images/local.png')} style={styles.addressIcon} />
+        <Text style={styles.userAddress}>{userAddress}</Text>
+      </View>
 
-      {/* Caixa de ações */}
+      {/* Lista de ações */}
       <View style={styles.actionBox}>
         {actions.map((item) => (
-          <TouchableOpacity
-            key={item.name}
-            style={styles.actionItem}
-            onPress={() => router.push(item.route as any)}
-          >
+          <TouchableOpacity key={item.name} style={styles.actionItem} onPress={() => router.push(item.route as any)}>
             <View style={styles.actionContent}>
               <Image source={item.iconLeft} style={styles.actionIcon} />
               <Text style={styles.actionText}>{item.name}</Text>
@@ -55,7 +59,7 @@ export default function Profile() {
         ))}
       </View>
 
-      {/* Botão Sair */}
+      {/* Botão sair */}
       <TouchableOpacity style={styles.logoutButton} onPress={() => router.replace('/bemvindo')}>
         <Image source={require('../../assets/images/sair.png')} style={styles.logoutIcon} />
         <Text style={styles.logoutText}>Sair</Text>
@@ -74,61 +78,85 @@ const styles = StyleSheet.create({
 
   topRect: {
     width: '100%',
-    height: 280,
+    height: 250,
     backgroundColor: '#242760',
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
+    borderBottomLeftRadius: 80,
+    borderBottomRightRadius: 80,
     alignItems: 'center',
     justifyContent: 'flex-start',
     position: 'relative',
-    marginBottom: 60,
+    marginBottom: 80,
   },
 
   topTitle: {
     color: '#fff',
-    fontSize: 22,
+    fontSize: 32,
     fontWeight: '700',
-    marginTop: 50,
+    marginTop: 90,
+  },
+
+  backButton: {
+    position: 'absolute',
+    left: 20,
+    top: 92,
+  },
+
+  backIcon: {
+    width: 25,
+    height: 25,
   },
 
   notification: {
     position: 'absolute',
     right: 20,
-    top: 50,
+    top: 92,
   },
 
   notificationIcon: {
-    width: 25,
-    height: 25,
+    width: 30,
+    height: 30,
   },
 
   oval: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
+    width: 144,
+    height: 144,
+    borderRadius: 72,
     backgroundColor: '#fff',
     alignItems: 'center',
     justifyContent: 'center',
     position: 'absolute',
-    bottom: -60,
+    bottom: -50,
+    borderWidth: 3,
+    borderColor: '#ffffffff',
   },
 
   profileImage: {
-    width: 110,
-    height: 110,
-    borderRadius: 55,
+    width: 138,
+    height: 138,
+    borderRadius: 69,
   },
 
   userName: {
     fontSize: 20,
     fontWeight: '700',
-    marginTop: 70,
+    marginTop: -10,
+  },
+
+  addressContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+
+  addressIcon: {
+    width: 16,
+    height: 16,
+    marginRight: 8,
   },
 
   userAddress: {
     fontSize: 14,
     color: '#666',
-    marginBottom: 20,
   },
 
   actionBox: {
@@ -161,19 +189,19 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     fontWeight: '600',
-    color: '#242760',
+    color: '#000000ff',
   },
 
   actionArrow: {
     width: 20,
     height: 20,
-    tintColor: '#242760',
+    tintColor: '#544C4Cff',
   },
 
   logoutButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    width: '90%',
+    width: '50%',
     height: 50,
     backgroundColor: '#242760',
     borderRadius: 12,
