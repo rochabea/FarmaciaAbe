@@ -17,14 +17,13 @@ export default function Login() {
     <KeyboardAvoidingView style={styles.container} behavior="padding">
       <ScrollView contentContainerStyle={styles.scrollContainer} keyboardShouldPersistTaps="handled">
 
-        {/* Logo */}
         <Image 
           source={require('../assets/images/logo.png')} 
           style={styles.logo} 
           resizeMode="contain" 
         />
 
-        {/* Input Email */}
+        {/*  Email */}
         <View style={styles.inputContainer}>
           <Text style={styles.label}>Email</Text>
           <TextInput
@@ -37,7 +36,7 @@ export default function Login() {
           />
         </View>
 
-        {/* Input Senha */}
+        {/*  Senha */}
         <View style={styles.inputContainer}>
           <Text style={styles.label}>Senha</Text>
           <TextInput
@@ -67,7 +66,7 @@ const styles = StyleSheet.create({
   scrollContainer: {
     flexGrow: 1,
     alignItems: 'center',
-    justifyContent: 'flex-start', // elementos começam do topo
+    justifyContent: 'flex-start', 
     paddingTop: 60,
     paddingHorizontal: 20,
     paddingBottom: 40,
