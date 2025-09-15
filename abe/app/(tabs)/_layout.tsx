@@ -42,7 +42,7 @@ export default function TabLayout() {
         }}
       />
 
-      {/* 3ª aba: Buscar (botão central) */}
+      {/* 3ª aba: Buscar*/}
       <Tabs.Screen
         name="busca"
         options={{
@@ -51,7 +51,7 @@ export default function TabLayout() {
               <View style={[styles.fab, focused && styles.fabActive]}>
                 <Image
                   source={require('../../assets/images/buscar.png')}
-                  style={{ width: 28, height: 28 }}
+                  style={{ width: 34, height: 34 }}
                 />
               </View>
             </View>
@@ -108,6 +108,6 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   fabActive: {
-    backgroundColor: '#4A5CD3', // cor do botão central quando ativo
+    backgroundColor: '#000000ff', 
   },
 });
