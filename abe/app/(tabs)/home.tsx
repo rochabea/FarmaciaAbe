@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
-import { Link } from 'expo-router';
+import { Link, router } from 'expo-router';
 
 export default function TabOneScreen() {
   const [showOffer, setShowOffer] = useState(true);
@@ -23,7 +23,7 @@ export default function TabOneScreen() {
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={() => router.push('/cesta')}>
           <Image source={require('../../assets/images/car.png')} style={styles.icon} />
         </TouchableOpacity>
 
