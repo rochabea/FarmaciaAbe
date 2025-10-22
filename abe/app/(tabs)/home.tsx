@@ -7,17 +7,25 @@ export default function TabOneScreen() {
 
   const categories = [
     { name: 'Medicamentos', icon: require('../../assets/images/medicamentos.png') },
-    { name: 'Bem-estar', icon: require('../../assets/images/maos.png') },
-    { name: 'Maternidade', icon: require('../../assets/images/bebe.png') },
-    { name: 'Cosméticos', icon: require('../../assets/images/cosmeticos.png') },
+    { name: 'Bem-estar',    icon: require('../../assets/images/maos.png') },
+    { name: 'Maternidade',  icon: require('../../assets/images/bebe.png') },
+    { name: 'Cosméticos',   icon: require('../../assets/images/cosmeticos.png') },
   ];
 
   const highlights = [
-    { name: 'Aspirina', icon: require('../../assets/images/remedio.png') },
+    { name: 'Aspirina',    icon: require('../../assets/images/remedio.png') },
     { name: 'Paracetamol', icon: require('../../assets/images/remedio.png') },
-    { name: 'Ibuprofeno', icon: require('../../assets/images/remedio.png') },
-    { name: 'Vitamina C', icon: require('../../assets/images/remedio.png') },
+    { name: 'Ibuprofeno',  icon: require('../../assets/images/remedio.png') },
+    { name: 'Vitamina C',  icon: require('../../assets/images/remedio.png') },
   ];
+
+  // gera um id limpo (sem acentos/espacos)
+  const slugify = (s: string) =>
+    s
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .replace(/\s+/g, '-');
 
   return (
     <View style={styles.container}>
@@ -66,23 +74,34 @@ export default function TabOneScreen() {
               Card
             );
           })}
-                  </ScrollView>
+        </ScrollView>
 
-        {/* Destaques*/}
+        {/* Destaques */}
         <Text style={styles.sectionTitle}>Destaques</Text>
         <View style={styles.highlightsGrid}>
-          {highlights.map((item, index) => (
-            <View key={index} style={styles.highlightBoxGrid}>
-              <Image source={item.icon} style={styles.highlightIconGrid} resizeMode="contain" />
-
-              {/* Conteúdo do card*/}
-              <View style={{ width: '100%', paddingHorizontal: 10 }}>
-                <Text style={styles.highlightName}>{item.name}</Text>
-                <Text style={styles.highlightSubtitle}>Oferta por</Text>
-                <Text style={styles.highlightPrice}>R$ 10,99</Text>
-              </View>
-            </View>
-          ))}
+          {highlights.map((item, index) => {
+            const id = slugify(item.name); // "Vitamina C" -> "vitamina-c"
+            return (
+              <TouchableOpacity
+                key={index}
+                style={styles.highlightBoxGrid}
+                activeOpacity={0.9}
+                onPress={() =>
+                  router.push({
+                    pathname: '/produto/tela_produto', // (tabs) nunca entra na URL
+                    params: { id },                     // ex.: "vitamina-c"
+                  })
+                }
+              >
+                <Image source={item.icon} style={styles.highlightIconGrid} resizeMode="contain" />
+                <View style={{ width: '100%', paddingHorizontal: 10 }}>
+                  <Text style={styles.highlightName}>{item.name}</Text>
+                  <Text style={styles.highlightSubtitle}>Oferta por</Text>
+                  <Text style={styles.highlightPrice}>R$ 10,99</Text>
+                </View>
+              </TouchableOpacity>
+            );
+          })}
         </View>
       </ScrollView>
     </View>
@@ -90,110 +109,51 @@ export default function TabOneScreen() {
 }
 
 const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: '#fff', paddingTop: 60 },
 
-  container: { 
-    flex: 1, 
-    backgroundColor: '#fff', 
-    paddingTop: 60 
-  },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20 },
 
-  header: { 
-    flexDirection: 'row', 
-    justifyContent: 'space-between', 
-    alignItems: 'center', 
-    paddingHorizontal: 20 
-  },
+  icon: { width: 30, height: 30 },
 
-  icon: { 
-    width: 30, 
-    height: 30 
-  },
+  logo: { width: 100, height: 40 },
 
-  logo: { 
-    width: 100, 
-    height: 40 
-  },
+  offerBox: { margin: 20, backgroundColor: '#F4F4F7', borderRadius: 12, padding: 20, position: 'relative' },
 
-  offerBox: { 
-    margin: 20, 
-    backgroundColor: '#F4F4F7', 
-    borderRadius: 12, 
-    padding: 20, 
-    position: 'relative' 
-  },
+  offerTitle: { fontSize: 25, fontWeight: '700', color: '#242760', marginLeft: 90 },
 
-  offerTitle: { 
-    fontSize: 25, 
-    fontWeight: '700', 
-    color: '#242760', 
-    marginLeft: 90 
-  },
+  offerSubtitle: { fontSize: 14, color: '#000', marginTop: 5, marginLeft: 90 },
 
-  offerSubtitle: { 
-    fontSize: 14, 
-    color: '#000', 
-    marginTop: 5, 
-    marginLeft: 90 
-  },
+  offerPercent: { width: 83, height: 83, position: 'absolute', left: 5, top: 5 },
 
-  offerPercent: { 
-    width: 83, 
-    height: 83, 
-    position: 'absolute', 
-    left: 5, 
-    top: 5 
-  },
-
-  closeButton: { 
-    position: 'absolute', 
-    top: 10, 
-    right: 10, 
+  closeButton: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
     backgroundColor: '#F4F4F7',
-    borderRadius: 15, 
-    width: 25, 
-    height: 25, 
-    justifyContent: 'center', 
-    alignItems: 'center' 
+    borderRadius: 15,
+    width: 25,
+    height: 25,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 
-  sectionTitle: { 
-    fontSize: 18, 
-    fontWeight: '700', 
-    color: '#242760', 
-    marginTop: 20, 
-    marginBottom: 10, 
-    paddingLeft: 20 
+  sectionTitle: { fontSize: 18, fontWeight: '700', color: '#242760', marginTop: 20, marginBottom: 10, paddingLeft: 20 },
+
+  categoryBox: {
+    width: 120,
+    height: 100,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 15,
+    backgroundColor: '#F4F4F7',
   },
 
-  categoryBox: { 
-    width: 120, 
-    height: 100, 
-    borderRadius: 12, 
-    justifyContent: 'center', 
-    alignItems: 'center', 
-    marginRight: 15, 
-    backgroundColor: '#F4F4F7' 
-  },
+  categoryIcon: { width: 40, height: 40, marginBottom: 5 },
 
-  categoryIcon: { 
-    width: 40, 
-    height: 40, 
-    marginBottom: 5 
-  },
+  categoryText: { fontSize: 14, fontWeight: '600', color: '#242760', textAlign: 'center' },
 
-  categoryText: { 
-    fontSize: 14, 
-    fontWeight: '600', 
-    color: '#242760', 
-    textAlign: 'center' 
-  },
-
-  highlightsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-  },
+  highlightsGrid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', paddingHorizontal: 20 },
 
   highlightBoxGrid: {
     width: '48%',
@@ -201,38 +161,15 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     borderRadius: 12,
     justifyContent: 'center',
-    alignItems: 'flex-start', 
+    alignItems: 'flex-start',
     backgroundColor: '#F4F4F7',
   },
 
-  highlightIconGrid: {
-    width: 93,
-    height: 67,
-    alignSelf: 'center', 
-    marginBottom: 5,
-  },
+  highlightIconGrid: { width: 93, height: 67, alignSelf: 'center', marginBottom: 5 },
 
-  highlightName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#242760',
-    textAlign: 'left',
-    marginTop: 5,
-  },
+  highlightName: { fontSize: 16, fontWeight: '600', color: '#242760', textAlign: 'left', marginTop: 5 },
 
-  highlightSubtitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#000000ff',
-    textAlign: 'left',
-    marginTop: 5,
-  },
+  highlightSubtitle: { fontSize: 16, fontWeight: '600', color: '#000000ff', textAlign: 'left', marginTop: 5 },
 
-  highlightPrice: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#000000ff',
-    textAlign: 'left',
-    marginTop: 2,
-  },
+  highlightPrice: { fontSize: 16, fontWeight: '700', color: '#000000ff', textAlign: 'left', marginTop: 2 },
 });

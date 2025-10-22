@@ -1,6 +1,7 @@
 import React from 'react';
-import { Image, Pressable, StyleSheet, View } from 'react-native';
+import { Image, StyleSheet, View } from 'react-native';
 import { Tabs } from 'expo-router';
+// import CustomTabBar from '@/components/CustomTabBar'; // use se quiser
 
 export default function TabLayout() {
   return (
@@ -15,8 +16,10 @@ export default function TabLayout() {
           elevation: 10,
         },
       }}
+      // Se for usar sua tab bar custom:
+      // tabBar={(props) => <CustomTabBar {...props} />}
     >
-      {/* 1ª aba: Home */}
+      {/* 1ª aba: Home (app/(tabs)/home.tsx) */}
       <Tabs.Screen
         name="home"
         options={{
@@ -29,7 +32,7 @@ export default function TabLayout() {
         }}
       />
 
-      {/* 2ª aba: Sacola */}
+      {/* 2ª aba: Sacola (app/(tabs)/sacola.tsx) */}
       <Tabs.Screen
         name="sacola"
         options={{
@@ -42,7 +45,7 @@ export default function TabLayout() {
         }}
       />
 
-      {/* 3ª aba: Buscar*/}
+      {/* 3ª aba: Buscar (app/(tabs)/busca.tsx) */}
       <Tabs.Screen
         name="busca"
         options={{
@@ -59,7 +62,7 @@ export default function TabLayout() {
         }}
       />
 
-      {/* 4ª aba: Configuração */}
+      {/* 4ª aba: Configuração (app/(tabs)/configuracao.tsx) */}
       <Tabs.Screen
         name="configuracao"
         options={{
@@ -72,7 +75,7 @@ export default function TabLayout() {
         }}
       />
 
-      {/* 5ª aba: Perfil */}
+      {/* 5ª aba: Perfil (app/(tabs)/conta.tsx) */}
       <Tabs.Screen
         name="conta"
         options={{
@@ -84,6 +87,9 @@ export default function TabLayout() {
           ),
         }}
       />
+
+      {/* Tela de Produto (app/(tabs)/produto/tela_produto.tsx) */}
+      <Tabs.Screen name="produto/tela_produto" options={{ href: null }} />
     </Tabs>
   );
 }
@@ -107,7 +113,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     elevation: 8,
   },
-  fabActive: {
-    backgroundColor: '#000000ff', 
-  },
+  fabActive: { backgroundColor: '#000000ff' },
 });
