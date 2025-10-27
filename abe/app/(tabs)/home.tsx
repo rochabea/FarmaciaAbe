@@ -1,58 +1,61 @@
-import React, { useState } from 'react';
-import { View, Text, Image, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
-import { Link, router } from 'expo-router';
+import React, { useState } from "react";
+import { View, Text, Image, StyleSheet, TouchableOpacity, ScrollView } from "react-native";
+import { Link, router } from "expo-router";
 
 export default function TabOneScreen() {
   const [showOffer, setShowOffer] = useState(true);
 
   const categories = [
-    { name: 'Medicamentos', icon: require('../../assets/images/medicamentos.png') },
-    { name: 'Bem-estar',    icon: require('../../assets/images/maos.png') },
-    { name: 'Maternidade',  icon: require('../../assets/images/bebe.png') },
-    { name: 'Cosméticos',   icon: require('../../assets/images/cosmeticos.png') },
+    { name: "Medicamentos", icon: require("../../assets/images/medicamentos.png") },
+    { name: "Bem-estar",    icon: require("../../assets/images/maos.png") },
+    { name: "Maternidade",  icon: require("../../assets/images/bebe.png") },
+    { name: "Cosméticos",   icon: require("../../assets/images/cosmeticos.png") },
   ];
 
   const highlights = [
-    { name: 'Aspirina',    icon: require('../../assets/images/remedio.png') },
-    { name: 'Paracetamol', icon: require('../../assets/images/remedio.png') },
-    { name: 'Ibuprofeno',  icon: require('../../assets/images/remedio.png') },
-    { name: 'Vitamina C',  icon: require('../../assets/images/remedio.png') },
+    { name: "Aspirina",    icon: require("../../assets/images/remedio.png") },
+    { name: "Paracetamol", icon: require("../../assets/images/remedio.png") },
+    { name: "Ibuprofeno",  icon: require("../../assets/images/remedio.png") },
+    { name: "Vitamina C",  icon: require("../../assets/images/remedio.png") },
   ];
 
-  // gera um id limpo (sem acentos/espacos)
   const slugify = (s: string) =>
-    s
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .toLowerCase()
-      .replace(/\s+/g, '-');
+    s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/\s+/g, "-");
 
   return (
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.push('/cesta')}>
-          <Image source={require('../../assets/images/car.png')} style={styles.icon} />
+        <TouchableOpacity onPress={() => router.push("/cesta")}>
+          <Image source={require("../../assets/images/car.png")} style={styles.icon} />
         </TouchableOpacity>
 
-        <Image source={require('../../assets/images/logo.png')} style={styles.logo} resizeMode="contain" />
+        <Image source={require("../../assets/images/logo.png")} style={styles.logo} resizeMode="contain" />
 
         <TouchableOpacity>
-          <Image source={require('../../assets/images/notificacao.png')} style={styles.icon} />
+          <Image source={require("../../assets/images/notificacao.png")} style={styles.icon} />
         </TouchableOpacity>
       </View>
 
       <ScrollView contentContainerStyle={{ paddingBottom: 20 }}>
-        {/* Caixinha de oferta */}
+        {/* BANNER DE OFERTAS -> redireciona para /promo */}
         {showOffer && (
-          <View style={styles.offerBox}>
-            <Image source={require('../../assets/images/percent.png')} style={styles.offerPercent} />
-            <Text style={styles.offerTitle}>OFERTAS</Text>
-            <Text style={styles.offerSubtitle}>Veja as ofertas da semana</Text>
-            <TouchableOpacity style={styles.closeButton} onPress={() => setShowOffer(false)}>
-              <Text style={{ color: '#000000ff' }}>X</Text>
+          <Link href="/promo" asChild>
+            <TouchableOpacity activeOpacity={0.9} style={styles.offerBox}>
+              <Image source={require("../../assets/images/percent.png")} style={styles.offerPercent} />
+              <Text style={styles.offerTitle}>OFERTAS</Text>
+              <Text style={styles.offerSubtitle}>Veja as ofertas da semana</Text>
+
+              {/* Fechar banner (não navega) */}
+              <TouchableOpacity
+                style={styles.closeButton}
+                onPress={() => setShowOffer(false)}
+                hitSlop={{ top: 10, left: 10, right: 10, bottom: 10 }}
+              >
+                <Text style={{ color: "#000000ff" }}>X</Text>
+              </TouchableOpacity>
             </TouchableOpacity>
-          </View>
+          </Link>
         )}
 
         {/* Categorias */}
@@ -66,7 +69,7 @@ export default function TabOneScreen() {
               </View>
             );
 
-            return cat.name === 'Medicamentos' ? (
+            return cat.name === "Medicamentos" ? (
               <Link key={index} href="/medicamentos" asChild>
                 <TouchableOpacity activeOpacity={0.8}>{Card}</TouchableOpacity>
               </Link>
@@ -80,7 +83,7 @@ export default function TabOneScreen() {
         <Text style={styles.sectionTitle}>Destaques</Text>
         <View style={styles.highlightsGrid}>
           {highlights.map((item, index) => {
-            const id = slugify(item.name); // "Vitamina C" -> "vitamina-c"
+            const id = slugify(item.name);
             return (
               <TouchableOpacity
                 key={index}
@@ -88,13 +91,13 @@ export default function TabOneScreen() {
                 activeOpacity={0.9}
                 onPress={() =>
                   router.push({
-                    pathname: '/produto/tela_produto', // (tabs) nunca entra na URL
-                    params: { id },                     // ex.: "vitamina-c"
+                    pathname: "/produto/tela_produto",
+                    params: { id },
                   })
                 }
               >
                 <Image source={item.icon} style={styles.highlightIconGrid} resizeMode="contain" />
-                <View style={{ width: '100%', paddingHorizontal: 10 }}>
+                <View style={{ width: "100%", paddingHorizontal: 10 }}>
                   <Text style={styles.highlightName}>{item.name}</Text>
                   <Text style={styles.highlightSubtitle}>Oferta por</Text>
                   <Text style={styles.highlightPrice}>R$ 10,99</Text>
@@ -109,67 +112,67 @@ export default function TabOneScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff', paddingTop: 60 },
+  container: { flex: 1, backgroundColor: "#fff", paddingTop: 60 },
 
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20 },
+  header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: 20 },
 
   icon: { width: 30, height: 30 },
 
   logo: { width: 100, height: 40 },
 
-  offerBox: { margin: 20, backgroundColor: '#F4F4F7', borderRadius: 12, padding: 20, position: 'relative' },
+  offerBox: { margin: 20, backgroundColor: "#F4F4F7", borderRadius: 12, padding: 20, position: "relative" },
 
-  offerTitle: { fontSize: 25, fontWeight: '700', color: '#242760', marginLeft: 90 },
+  offerTitle: { fontSize: 25, fontWeight: "700", color: "#242760", marginLeft: 90 },
 
-  offerSubtitle: { fontSize: 14, color: '#000', marginTop: 5, marginLeft: 90 },
+  offerSubtitle: { fontSize: 14, color: "#000", marginTop: 5, marginLeft: 90 },
 
-  offerPercent: { width: 83, height: 83, position: 'absolute', left: 5, top: 5 },
+  offerPercent: { width: 83, height: 83, position: "absolute", left: 5, top: 5 },
 
   closeButton: {
-    position: 'absolute',
+    position: "absolute",
     top: 10,
     right: 10,
-    backgroundColor: '#F4F4F7',
+    backgroundColor: "#F4F4F7",
     borderRadius: 15,
     width: 25,
     height: 25,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
 
-  sectionTitle: { fontSize: 18, fontWeight: '700', color: '#242760', marginTop: 20, marginBottom: 10, paddingLeft: 20 },
+  sectionTitle: { fontSize: 18, fontWeight: "700", color: "#242760", marginTop: 20, marginBottom: 10, paddingLeft: 20 },
 
   categoryBox: {
     width: 120,
     height: 100,
     borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     marginRight: 15,
-    backgroundColor: '#F4F4F7',
+    backgroundColor: "#F4F4F7",
   },
 
   categoryIcon: { width: 40, height: 40, marginBottom: 5 },
 
-  categoryText: { fontSize: 14, fontWeight: '600', color: '#242760', textAlign: 'center' },
+  categoryText: { fontSize: 14, fontWeight: "600", color: "#242760", textAlign: "center" },
 
-  highlightsGrid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', paddingHorizontal: 20 },
+  highlightsGrid: { flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", paddingHorizontal: 20 },
 
   highlightBoxGrid: {
-    width: '48%',
+    width: "48%",
     height: 180,
     marginBottom: 15,
     borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'flex-start',
-    backgroundColor: '#F4F4F7',
+    justifyContent: "center",
+    alignItems: "flex-start",
+    backgroundColor: "#F4F4F7",
   },
 
-  highlightIconGrid: { width: 93, height: 67, alignSelf: 'center', marginBottom: 5 },
+  highlightIconGrid: { width: 93, height: 67, alignSelf: "center", marginBottom: 5 },
 
-  highlightName: { fontSize: 16, fontWeight: '600', color: '#242760', textAlign: 'left', marginTop: 5 },
+  highlightName: { fontSize: 16, fontWeight: "600", color: "#242760", textAlign: "left", marginTop: 5 },
 
-  highlightSubtitle: { fontSize: 16, fontWeight: '600', color: '#000000ff', textAlign: 'left', marginTop: 5 },
+  highlightSubtitle: { fontSize: 16, fontWeight: "600", color: "#000000ff", textAlign: "left", marginTop: 5 },
 
-  highlightPrice: { fontSize: 16, fontWeight: '700', color: '#000000ff', textAlign: 'left', marginTop: 2 },
+  highlightPrice: { fontSize: 16, fontWeight: "700", color: "#000000ff", textAlign: "left", marginTop: 2 },
 });
