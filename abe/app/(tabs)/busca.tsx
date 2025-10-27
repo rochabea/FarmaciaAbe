@@ -9,7 +9,7 @@ export default function SearchScreen() {
     { name: 'Bem-estar', icon: require('../../assets/images/maos.png') },
     { name: 'Maternidade', icon: require('../../assets/images/bebe.png') },
     { name: 'Cosméticos', icon: require('../../assets/images/cosmeticos.png') },
-    { name: 'Vitaminas', icon: require('../../assets/images/vitamina.png') },
+    { name: 'Manipulados', icon: require('../../assets/images/vitamina.png') },
     { name: 'Higiene', icon: require('../../assets/images/higiene.png') },
     { name: 'Cabelos', icon: require('../../assets/images/cabelos.png') },
     { name: 'Cuidados com a pele', icon: require('../../assets/images/pele.png') },

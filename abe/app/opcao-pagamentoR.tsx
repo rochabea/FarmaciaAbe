@@ -1,77 +1,85 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, Image, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 
-export default function FormaEntrega() {
+export default function Pagamento() {
   const router = useRouter();
   const params = useLocalSearchParams();
-  const subtotalValor = params.subtotal ? parseFloat(params.subtotal as string) : 0;
-  const [forma, setForma] = useState<'entrega' | 'retirada' | null>(null);
 
-  const handleContinuar = () => {
-    if (forma === 'entrega') {
-      router.push(`/entrega?subtotal=${subtotalValor}`);
-    } else if (forma === 'retirada') {
-      router.push(`/retirada?subtotal=${subtotalValor}`);
+  const [subtotalValor, setSubtotalValor] = useState(0);
+  const [metodoSelecionado, setMetodoSelecionado] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (params?.subtotal) {
+      const valorConvertido = parseFloat(String(params.subtotal));
+      if (!isNaN(valorConvertido)) {
+        setSubtotalValor(valorConvertido);
+      }
     }
-  };
+  }, [params]);
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
       {/* Cabeçalho */}
       <View style={styles.topRect}>
-        <TouchableOpacity style={styles.backButton} onPress={() => router.push('/cesta')}>
+        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
           <Image source={require('../assets/images/seta-esquerda.png')} style={styles.backIcon} />
         </TouchableOpacity>
 
-        <Text style={styles.topTitle}>Forma de Entrega</Text>
+        <Text style={styles.topTitle}>Pagamento</Text>
 
         <TouchableOpacity style={styles.notification}>
           <Image source={require('../assets/images/notificacaoB.png')} style={styles.notificationIcon} />
         </TouchableOpacity>
 
         <View style={styles.iconCircle}>
-          <Image source={require('../assets/images/carA.png')} style={styles.sacolaIcon} />
+          <Image source={require('../assets/images/carA.png')} style={styles.cartIcon} />
         </View>
       </View>
 
       <View style={{ height: 80 }} />
 
+      {/* Título */}
       <View style={styles.linhaTitulo}>
-        <Text style={styles.tituloEntrega}>Você deseja retirar ou receber o seu pedido?</Text>
+        <Text style={styles.tituloEntrega}>Como deseja pagar?</Text>
       </View>
 
-      {/* Opções de entrega */}
-      <View style={styles.opcoesRow}>
-        <TouchableOpacity 
-          style={[styles.caixa, forma === 'entrega' && styles.caixaSelecionada]}
-          onPress={() => setForma('entrega')}
+      {/* Métodos de Pagamento */}
+      <View style={styles.metodosContainer}>
+        <TouchableOpacity
+          style={[styles.metodoBox, metodoSelecionado === 'pix' && styles.metodoSelecionado]}
+          onPress={() => setMetodoSelecionado('pix')}
         >
-          <Image source={require('../assets/images/entrega.png')} style={styles.icone} />
-          <Text style={styles.caixaTexto}>Entrega</Text>
+          <Image source={require('../assets/images/pix.png')} style={styles.metodoIcon} />
+          <Text style={styles.metodoText}>Pix</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity 
-          style={[styles.caixa, forma === 'retirada' && styles.caixaSelecionada]}
-          onPress={() => setForma('retirada')}
+        <TouchableOpacity
+          style={[styles.metodoBox, metodoSelecionado === 'credito' && styles.metodoSelecionado]}
+          onPress={() => setMetodoSelecionado('credito')}
         >
-          <Image source={require('../assets/images/retirada.png')} style={styles.icone} />
-          <Text style={styles.caixaTexto}>Retirada</Text>
+          <Image source={require('../assets/images/cartao-de-credito.png')} style={styles.metodoIcon} />
+          <Text style={styles.metodoText}>Crédito</Text>
         </TouchableOpacity>
       </View>
 
-      {/* Subtotal e Total */}
+      {/* Subtotal */}
       <View style={styles.totalBox}>
         <Text style={styles.subtotalText}>Subtotal</Text>
         <Text style={styles.totalText}>Total</Text>
         <Text style={styles.totalValor}>R$ {subtotalValor.toFixed(2)}</Text>
       </View>
 
-      {/* Botão continuar */}
-      <TouchableOpacity 
-        style={[styles.continuarBtn, !forma && { opacity: 0.5 }]} 
-        disabled={!forma}
-        onPress={handleContinuar}
+      {/* Botão Continuar */}
+      <TouchableOpacity
+        style={[styles.continuarBtn, { opacity: metodoSelecionado ? 1 : 0.6 }]}
+        disabled={!metodoSelecionado}
+        onPress={() =>
+          router.push({
+            pathname: '/creditoR',
+            params: { subtotal: subtotalValor.toFixed(2) },
+          })
+        }
       >
         <Text style={styles.continuarText}>Continuar</Text>
       </TouchableOpacity>
@@ -132,7 +140,7 @@ const styles = StyleSheet.create({
     borderWidth: 3,
     borderColor: '#fff',
   },
-  sacolaIcon: {
+  cartIcon: {
     width: 70,
     height: 70,
   },
@@ -145,31 +153,33 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#242760',
   },
-  opcoesRow: {
+  metodosContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     width: '90%',
-    marginBottom: 40,
+    marginBottom: 30,
   },
-  caixa: {
-    width: '48%',
+  metodoBox: {
     backgroundColor: '#F4F4F7',
     borderRadius: 12,
-    padding: 20,
+    paddingVertical: 25,
+    paddingHorizontal: 40,
     alignItems: 'center',
     justifyContent: 'center',
+    width: '45%',
+  },
+  metodoSelecionado: {
     borderWidth: 2,
-    borderColor: '#F4F4F7',
-  },
-  caixaSelecionada: {
     borderColor: '#242760',
+    backgroundColor: '#E9E9F5',
   },
-  icone: {
+  metodoIcon: {
     width: 50,
     height: 50,
     marginBottom: 10,
+    resizeMode: 'contain',
   },
-  caixaTexto: {
+  metodoText: {
     fontSize: 16,
     fontWeight: '700',
     color: '#242760',

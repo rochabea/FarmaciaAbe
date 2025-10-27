@@ -7,10 +7,9 @@ export default function ResumoRetirada() {
   const params = useLocalSearchParams();
   const [produtos, setProdutos] = useState([
     { id: 1, nome: 'Aspirina', quantidade: 1, preco: 10.99, imagem: require('../assets/images/remedio.png') },
-    { id: 2, nome: 'Paracetamol', quantidade: 2, preco: 8.5, imagem: require('../assets/images/remedio.png') },
+    { id: 2, nome: 'Aspirina', quantidade: 1, preco: 10.99, imagem: require('../assets/images/remedio.png') },
   ]);
 
-  const subtotalValor = params.subtotal ? parseFloat(params.subtotal as string) : 0;
   const farmaciaNome = params.farmacia ? decodeURIComponent(params.farmacia as string) : '';
   const farmaciaKm = params.km ? params.km : '0 km';
 
@@ -42,14 +41,14 @@ export default function ResumoRetirada() {
         <Text style={styles.tituloEntrega}>Farmácia para retirada:</Text>
       </View>
 
-      {/* dados */}
+      {/* Dados da farmácia e produtos */}
       <View style={styles.caixaFarmacia}>
         <View style={styles.farmaciaHeader}>
           <Image source={require('../assets/images/retirada.png')} style={styles.iconeFarmacia} />
           <Text style={styles.farmaciaNome}>{farmaciaNome} - {farmaciaKm}</Text>
         </View>
 
-        {/* Retirado */}
+        {/* Retirado por */}
         <View style={styles.retiradoPorRow}>
           <Text style={styles.retiradoPorLabel}>Retirado por:</Text>
           <Text style={styles.usuarioNome}>Ana Beatriz</Text>
@@ -75,9 +74,22 @@ export default function ResumoRetirada() {
         <Text style={styles.totalText}>Total</Text>
         <Text style={styles.totalValor}>R$ {calcularTotal()}</Text>
       </View>
+
+      {/* Botão Confirmar Retirada */}
       <TouchableOpacity 
         style={styles.continuarBtn} 
-        onPress={() => router.push('/login')}
+        onPress={() => {
+          const subtotal = produtos.reduce((total, item) => total + item.preco * item.quantidade, 0).toFixed(2);
+
+          router.push({
+            pathname: '/opcao-pagamentoR',
+            params: {
+              subtotal,
+              farmacia: encodeURIComponent(farmaciaNome),
+              km: farmaciaKm,
+            },
+          });
+        }}
       >
         <Text style={styles.continuarText}>Confirmar Retirada</Text>
       </TouchableOpacity>

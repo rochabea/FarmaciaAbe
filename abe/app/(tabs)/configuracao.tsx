@@ -9,7 +9,7 @@ export default function Configuracoes() {
   const actions = [
     { name: 'Gerenciar Perfil', route: '/conta', iconLeft: require('../../assets/images/perfilconf.png'), iconRight: require('../../assets/images/seta-direita.png') },
     { name: 'Segurança', route: '/seguranca', iconLeft: require('../../assets/images/seguranca.png'), iconRight: require('../../assets/images/seta-direita.png') },
-    { name: 'Endereço', route: '/endereco', iconLeft: require('../../assets/images/local.png'), iconRight: require('../../assets/images/seta-direita.png') },
+    { name: 'Endereço', route: '/localizacoes', iconLeft: require('../../assets/images/local.png'), iconRight: require('../../assets/images/seta-direita.png') },
     { name: 'Cartões', route: '/cartoes', iconLeft: require('../../assets/images/cartaoC.png'), iconRight: require('../../assets/images/seta-direita.png') },
     { name: 'Excluir Conta', route: '/excluirConta', iconLeft: require('../../assets/images/excluir.png'), iconRight: require('../../assets/images/seta-direita.png') },
   ];
@@ -31,8 +31,6 @@ export default function Configuracoes() {
           <Image source={require('../../assets/images/configuracaoA.png')} style={styles.configuracoesIcon} />
         </View>
       </View>
-
-      {/* Espaço para que o box não fique sobre o círculo */}
       <View style={{ height: 80 }} />
 
       <View style={styles.actionBox}>
