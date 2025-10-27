@@ -34,7 +34,7 @@ export default function CompraRealizada() {
 
         <TouchableOpacity
           style={styles.cancelarBtn}
-          onPress={() => router.push('/cancelarCompra')} 
+          onPress={() => router.push('/cancelar-compra')} 
         >
           <Text style={styles.cancelarText}>Cancelar compra</Text>
         </TouchableOpacity>

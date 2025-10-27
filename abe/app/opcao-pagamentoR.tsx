@@ -7,7 +7,7 @@ export default function Pagamento() {
   const params = useLocalSearchParams();
 
   const [subtotalValor, setSubtotalValor] = useState(0);
-  const [metodoSelecionado, setMetodoSelecionado] = useState<string | null>(null);
+  const [metodoSelecionado, setMetodoSelecionado] = useState<'pix' | 'credito' | null>(null);
 
   useEffect(() => {
     if (params?.subtotal) {
@@ -17,6 +17,13 @@ export default function Pagamento() {
       }
     }
   }, [params]);
+
+  const handleContinuar = () => {
+    if (!metodoSelecionado) return;
+
+    const pathname = metodoSelecionado === 'pix' ? '/pixR' : '/creditoR';
+    router.push({ pathname, params: { subtotal: subtotalValor.toFixed(2) } });
+  };
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -74,12 +81,7 @@ export default function Pagamento() {
       <TouchableOpacity
         style={[styles.continuarBtn, { opacity: metodoSelecionado ? 1 : 0.6 }]}
         disabled={!metodoSelecionado}
-        onPress={() =>
-          router.push({
-            pathname: '/creditoR',
-            params: { subtotal: subtotalValor.toFixed(2) },
-          })
-        }
+        onPress={handleContinuar}
       >
         <Text style={styles.continuarText}>Continuar</Text>
       </TouchableOpacity>
