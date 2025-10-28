@@ -1,4 +1,4 @@
-// app/promo/index.tsx
+// app/promo/index.tsx (ou onde está sua tela de promoções)
 import React, { memo, useState } from "react";
 import {
   View,
@@ -34,7 +34,8 @@ export default function Promocoes() {
   const router = useRouter();
   const [notifVisible, setNotifVisible] = useState(false);
 
-  const goHome = () => router.replace("/(tabs)/home");
+  
+  const goHome = () => router.back();
 
   return (
     <View style={styles.container}>
@@ -44,6 +45,7 @@ export default function Promocoes() {
           <TouchableOpacity
             onPress={goHome}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            style={{ zIndex: 5 }}                 // ↑ garante clique acima de overlays
           >
             <Ionicons name="chevron-back" size={24} color="#fff" />
           </TouchableOpacity>
@@ -53,14 +55,15 @@ export default function Promocoes() {
           <TouchableOpacity
             onPress={() => setNotifVisible(true)}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            style={{ zIndex: 5 }}                 // ↑ idem
           >
             <Ionicons name="notifications-outline" size={22} color="#fff" />
           </TouchableOpacity>
         </View>
 
-        {/* recorte branco + badge central */}
-        <View style={styles.cutout} />
-        <View style={styles.badge}>
+        {/* recorte branco + badge central (não interceptam toques) */}
+        <View style={styles.cutout} pointerEvents="none" />
+        <View style={styles.badge} pointerEvents="none">
           <View style={styles.badgeSquare}>
             <Image
               source={require("../../assets/images/megafone.png")}
@@ -119,7 +122,7 @@ export default function Promocoes() {
   );
 }
 
-const ProductCard = memo(({ item }: { item: Product }) => (
+const ProductCard = memo(({ item }: { id?: string; item: Product }) => (
   <View style={styles.card}>
     <View style={styles.imageWrap}>
       <Image source={item.image} style={styles.cardImg} resizeMode="contain" />
@@ -146,7 +149,7 @@ const styles = StyleSheet.create({
   header: {
     backgroundColor: NAVY,
     paddingTop: 12,
-    paddingBottom: 72,                // mais espaço para o recorte
+    paddingBottom: 72,
     borderBottomLeftRadius: 32,
     borderBottomRightRadius: 32,
     overflow: "visible",
@@ -156,18 +159,20 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+    zIndex: 4, // ↑ acima dos elementos absolutos
   },
   headerTitle: {
     color: "#fff",
     fontSize: 22,
     fontWeight: "700",
-    position: "absolute",            // garante centralização independente dos ícones
+    position: "absolute",
     left: 0,
     right: 0,
     textAlign: "center",
+    zIndex: 3,
   },
 
-  // recorte branco (semicírculo para baixo)
+  // recorte branco (semicírculo)
   cutout: {
     position: "absolute",
     bottom: -35,
@@ -180,7 +185,7 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
 
-  // badge por cima do recorte
+  // badge
   badge: {
     position: "absolute",
     bottom: -28,
@@ -209,12 +214,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  badgeIcon: {
-    width: 28,
-    height: 28,
-    // remova a linha abaixo se seu megafone.png for colorido
-    // tintColor: NAVY,
-  },
+  badgeIcon: { width: 28, height: 28 },
 
   // CONTEÚDO
   content: { flex: 1, paddingTop: 40 },
@@ -274,15 +274,6 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   buyTxt: { color: "#fff", fontWeight: "600", fontSize: 14 },
-
-  // container da tab bar fixa
-  tabBarContainer: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: "transparent",
-  },
 
   // modal
   modalBackdrop: {
