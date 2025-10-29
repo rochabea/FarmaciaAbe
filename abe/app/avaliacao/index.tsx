@@ -9,6 +9,7 @@ import {
   Platform,
   ScrollView,
   Alert,
+  Image,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -24,22 +25,19 @@ function StarRating({
   size?: number;
 }) {
   return (
-    <View style={styles.starsRow} accessible accessibilityLabel={`Nota ${value} de 5`}>
+    <View style={styles.starsRow}>
       {[1, 2, 3, 4, 5].map((n) => {
         const filled = n <= value;
         return (
           <TouchableOpacity
             key={n}
             onPress={() => onChange(n)}
-            accessibilityRole="button"
-            accessibilityLabel={`Dar nota ${n}`}
             style={styles.starBtn}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
             <Ionicons
               name={filled ? "star" : "star-outline"}
               size={size}
-              color={filled ? "#10153B" : "#10153B"}
+              color="#10153B"
             />
           </TouchableOpacity>
         );
@@ -48,22 +46,19 @@ function StarRating({
   );
 }
 
-/** --- Tela de Avaliação --- */
+/** --- Tela Principal --- */
 export default function AvaliacaoScreen() {
   const router = useRouter();
   const [rating, setRating] = useState<number>(0);
   const [comment, setComment] = useState<string>("");
 
-  const canSubmit = true || comment.trim().length > 0;
+  const canSubmit = rating > 0 || comment.trim().length > 0;
 
   const handleSubmit = async () => {
-    // TODO: se quiser enviar para seu backend/Supabase, faça aqui.
-    // Exemplo (pseudo):
-    // await supabase.from('avaliacoes').insert({ rating, comment, created_at: new Date().toISOString() })
     Alert.alert("Obrigado!", "Sua avaliação foi enviada com sucesso.");
     setRating(0);
     setComment("");
-    router.back(); // volta para tela anterior
+    router.back();
   };
 
   return (
@@ -71,64 +66,65 @@ export default function AvaliacaoScreen() {
       style={{ flex: 1, backgroundColor: "#ffffff" }}
       behavior={Platform.select({ ios: "padding", android: undefined })}
     >
-      <ScrollView contentContainerStyle={{ paddingBottom: 24 }}>
-        {/* Cabeçalho */}
-        <View style={styles.header}>
-          <TouchableOpacity
-            onPress={() => router.back()}
-            accessibilityRole="button"
-            style={styles.backBtn}
-          >
-            <Ionicons name="chevron-back" size={28} color="#ffffff" />
-          </TouchableOpacity>
-
-          <Text style={styles.headerTitle}>Avaliação</Text>
-
-          {/* Ícone circular central */}
-          <View style={styles.heroCircle}>
-            <Ionicons name="person" size={40} color="#10153B" />
-            <Ionicons
-              name="heart"
-              size={16}
-              color="#10153B"
-              style={{ position: "absolute", right: 18, bottom: 14 }}
-            />
-          </View>
-        </View>
-
-        {/* Conteúdo */}
-        <View style={styles.container}>
-          <Text style={styles.title}>Avalie sua{"\n"}experiência</Text>
-          <Text style={styles.subtitle}>Sua opinião nos ajuda a melhorar!</Text>
-
-          <Text style={styles.helper}>
-            Avalie de 1 a 5 como você classificaria seu atendimento/compras
-          </Text>
-
-          <StarRating value={rating} onChange={setRating} />
-
-          <Text style={styles.commentLabel}>
-            Deixe um comentário, sugestão ou elogio
-          </Text>
-
-          <TextInput
-            value={comment}
-            onChangeText={setComment}
-            placeholder="Escreva aqui..."
-            placeholderTextColor="#9AA3AF"
-            style={styles.input}
-            multiline
-            numberOfLines={5}
-            maxLength={500}
+      {/* HEADER */}
+      <View style={styles.topRect}>
+        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+          <Image
+            source={require("../../assets/images/seta-esquerda.png")}
+            style={styles.backIcon}
           />
+        </TouchableOpacity>
 
-          <TouchableOpacity
-            onPress={handleSubmit}
-            disabled={!canSubmit}
-            style={[styles.cta, !canSubmit && styles.ctaDisabled]}
-          >
-            <Text style={styles.ctaText}>Avaliar</Text>
-          </TouchableOpacity>
+        <Text style={styles.topTitle}>Avaliação</Text>
+
+        {/* Ícone centralizado no topo */}
+        <View style={styles.iconCircle}>
+          <Ionicons name="person" size={40} color="#10153B" />
+          <Ionicons
+            name="heart"
+            size={16}
+            color="#10153B"
+            style={{ position: "absolute", right: 18, bottom: 14 }}
+          />
+        </View>
+      </View>
+
+      {/* CONTEÚDO */}
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        <View style={styles.pageCenter}>
+          <View style={styles.container}>
+            <Text style={styles.title}>Avalie sua{"\n"}experiência</Text>
+            <Text style={styles.subtitle}>Sua opinião nos ajuda a melhorar!</Text>
+
+            <Text style={styles.helper}>
+              Avalie de 1 a 5 como você classificaria seu atendimento/compras
+            </Text>
+
+            <StarRating value={rating} onChange={setRating} />
+
+            <Text style={styles.commentLabel}>
+              Deixe um comentário, sugestão ou elogio
+            </Text>
+
+            <TextInput
+              value={comment}
+              onChangeText={setComment}
+              placeholder="Escreva aqui..."
+              placeholderTextColor="#9AA3AF"
+              style={styles.input}
+              multiline
+              numberOfLines={5}
+              maxLength={500}
+            />
+
+            <TouchableOpacity
+              onPress={handleSubmit}
+              disabled={!canSubmit}
+              style={[styles.cta, !canSubmit && styles.ctaDisabled]}
+            >
+              <Text style={styles.ctaText}>Avaliar</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -136,39 +132,61 @@ export default function AvaliacaoScreen() {
 }
 
 /** --- Estilos --- */
-const PRIMARY = "#10153B";  // azul do mock
+const PRIMARY = "#242760";
 const LIGHT_BG = "#F4F6FA";
 
 const styles = StyleSheet.create({
-  header: {
+  scrollContent: {
+    paddingBottom: 24,
+  },
+  pageCenter: {
+    width: "100%",
+    alignItems: "center",
+  },
+
+  /* HEADER */
+  topRect: {
+    width: "100%",
     backgroundColor: PRIMARY,
     paddingTop: 52,
-    paddingHorizontal: 16,
     paddingBottom: 42,
     borderBottomLeftRadius: 24,
     borderBottomRightRadius: 24,
+    alignItems: "center",
+    justifyContent: "center",
+    position: "relative",
+    overflow: "visible",
   },
-  backBtn: {
+  backButton: {
+    position: "absolute",
+    top: 52,
+    left: 16,
     width: 36,
     height: 36,
     alignItems: "center",
     justifyContent: "center",
-    //borderRadius: 18,
   },
-  headerTitle: {
+  backIcon: {
+    width: 22,
+    height: 22,
+    tintColor: "#fff",
+    resizeMode: "contain",
+  },
+  topTitle: {
     color: "#fff",
     fontSize: 28,
     fontWeight: "900",
-    marginTop: 2,
+    marginTop: 4,
+    textAlign: "center",
   },
-  heroCircle: {
+  iconCircle: {
     position: "absolute",
-    bottom: -28,
-    left: 24,
+    bottom: -32,
+    alignSelf: "center", // centraliza horizontalmente
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: "#ffffff",
+    backgroundColor: "#fff",
     alignItems: "center",
     justifyContent: "center",
     shadowColor: "#000",
@@ -176,11 +194,15 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 6,
     elevation: 3,
+    zIndex: 1,
   },
 
+  /* CONTEÚDO */
   container: {
-    paddingHorizontal: 20,
-    paddingTop: 40,
+    alignSelf: "center",
+    width: "92%",
+    maxWidth: 420,
+    paddingTop: 48,
   },
   title: {
     fontSize: 26,
@@ -195,20 +217,21 @@ const styles = StyleSheet.create({
     fontSize: 13,
   },
   helper: {
-    color: "#111827",
+    color: PRIMARY,
     marginBottom: 10,
+    textAlign: "center",
   },
   starsRow: {
     flexDirection: "row",
-    gap: 8,
+    gap: 12,
+    justifyContent: "center",
     marginBottom: 18,
   },
-  starBtn: {
-    padding: 2,
-  },
+  starBtn: { padding: 2 },
   commentLabel: {
-    color: "#111827",
+    color: PRIMARY,
     marginBottom: 8,
+    textAlign: "center",
   },
   input: {
     backgroundColor: LIGHT_BG,
@@ -219,6 +242,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#E5E7EB",
     marginBottom: 16,
+    alignSelf: "stretch",
   },
   cta: {
     backgroundColor: PRIMARY,
@@ -226,14 +250,9 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 4,
+    marginTop: 8,
+    alignSelf: "stretch",
   },
-  ctaDisabled: {
-    opacity: 0.5,
-  },
-  ctaText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "700",
-  },
+  ctaDisabled: { opacity: 0.5 },
+  ctaText: { color: "#fff", fontSize: 16, fontWeight: "700" },
 });
