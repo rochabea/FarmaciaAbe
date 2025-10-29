@@ -26,7 +26,8 @@ export default function CompraRealizada() {
 
           <TouchableOpacity
             style={styles.avaliarBtn}
-            onPress={() => router.push('/avaliarProduto')} 
+            // para saber -> mudei esse caminho aqui 
+            onPress={() => router.push('/avaliacao')}
           >
             <Text style={styles.avaliarText}>Avaliar produto</Text>
           </TouchableOpacity>
