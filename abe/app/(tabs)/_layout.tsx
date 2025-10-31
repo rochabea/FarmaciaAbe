@@ -1,8 +1,8 @@
 import React from 'react';
 import { Image, StyleSheet, View } from 'react-native';
 import { Tabs } from 'expo-router';
-// import CustomTabBar from '@/components/CustomTabBar'; // use se quiser
-
+import { Ionicons } from "@expo/vector-icons";
+// import CustomTabBar from '@/components/CustomTabBar'; 
 export default function TabLayout() {
   return (
     <Tabs
@@ -90,6 +90,16 @@ export default function TabLayout() {
 
       {/* Tela de Produto (app/(tabs)/produto/tela_produto.tsx) */}
       <Tabs.Screen name="produto/tela_produto" options={{ href: null }} />
+
+      <Tabs.Screen
+        name="avaliacao"
+        options={{
+          title: "Avaliação",
+          tabBarIcon: ({ color, size, focused }) => (
+            <Ionicons name={focused ? "star" : "star-outline"} color={color} size={size} />
+          ),
+        }}
+      />
     </Tabs>
   );
 }

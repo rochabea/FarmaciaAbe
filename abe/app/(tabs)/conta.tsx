@@ -12,7 +12,7 @@ export default function Profile() {
   const actions = [
     { name: 'Editar Perfil', route: '/editarPerfil', iconLeft: require('../../assets/images/editarC.png'), iconRight: require('../../assets/images/seta-direita.png') },
     { name: 'Meus Pedidos', route: '/pedidos', iconLeft: require('../../assets/images/sacolaC.png'), iconRight: require('../../assets/images/seta-direita.png') },
-    { name: 'Manipulados', route: '/historico', iconLeft: require('../../assets/images/vitamina.png'), iconRight: require('../../assets/images/seta-direita.png') },
+    { name: 'Manipulados', route: '/manipulados/solicitacoes', iconLeft: require('../../assets/images/vitamina.png'), iconRight: require('../../assets/images/seta-direita.png') },
     { name: 'Privacidade', route: '/privacidade', iconLeft: require('../../assets/images/privacidade.png'), iconRight: require('../../assets/images/seta-direita.png') },
     { name: 'Configurações', route: '/configuracao', iconLeft: require('../../assets/images/configuracaoC.png'), iconRight: require('../../assets/images/seta-direita.png') },
   ];
