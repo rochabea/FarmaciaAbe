@@ -1,4 +1,3 @@
-//app/(tabs)/produto/tela_produto.tsx
 import React, { useMemo, useState } from "react";
 import {
   View,
@@ -35,13 +34,13 @@ export default function TelaProduto() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id?: string }>();
 
-  // ——— mock simples; troque por fetch/Context quando quiser
+  // --- mock simples; troque por fetch/Context quando quiser
   const product: Product = useMemo(
     () => ({
       id: (id as string) || "aspirina",
       name: "Aspirina Ácido Acetilsalicílico 500mg 20 comprimidos",
       subtitle: "Para esse item não é necessário receita médica",
-      price: undefined, // mostra “R$ XX,XX” como no mock
+      price: undefined, // “R$ XX,XX”
       image: require("../../../assets/images/remedio.png"),
     }),
     [id]
@@ -87,10 +86,17 @@ export default function TelaProduto() {
         {/* Imagem */}
         <Image source={product.image} style={styles.prodImage} resizeMode="contain" />
 
-        {/* Observação */}
-        {product.subtitle ? (
-          <Text style={styles.subtitle}>{product.subtitle}</Text>
-        ) : null}
+        {/* Observação + hiperlink para manipulados */}
+        <View style={{ alignItems: "center", marginTop: 10 }}>
+          {!!product.subtitle && <Text style={styles.subtitle}>{product.subtitle}</Text>}
+
+          <TouchableOpacity
+            onPress={() => router.push("./manipulados/envio")}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.link}>Enviar para manipulação</Text>
+          </TouchableOpacity>
+        </View>
 
         {/* Preço + contador simples “+ 1” */}
         <View style={styles.priceRow}>
@@ -107,7 +113,10 @@ export default function TelaProduto() {
         </TouchableOpacity>
 
         {/* Consultar frete */}
-        <Pressable onPress={() => Alert.alert("Entrega", "Abrir fluxo para CEP.")} style={styles.linkRow}>
+        <Pressable
+          onPress={() => Alert.alert("Entrega", "Abrir fluxo para CEP.")}
+          style={styles.linkRow}
+        >
           <Image
             source={require("../../../assets/images/percent.png")}
             style={{ width: 18, height: 18, tintColor: TEXT, marginRight: 6 }}
@@ -169,7 +178,6 @@ const styles = StyleSheet.create({
   prodImage: { width: "100%", height: 150, marginTop: 12 },
 
   subtitle: {
-    marginTop: 10,
     textAlign: "center",
     color: GRAY,
     fontSize: 12,
@@ -229,4 +237,12 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   descText: { fontSize: 12, color: GRAY, lineHeight: 18 },
+
+  link: {
+    marginTop: 6,
+    color: "#242760",
+    textDecorationLine: "underline",
+    fontWeight: "600",
+    textAlign: "center",
+  },
 });
