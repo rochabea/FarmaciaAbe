@@ -11,7 +11,7 @@ export default function CancelarCompra() {
 
   const handleCancelarCompra = () => {
     alert('Compra cancelada!');
-    router.push('/cancelar-compra'); 
+    router.push('/compra_cancelada'); 
   };
 
   return (

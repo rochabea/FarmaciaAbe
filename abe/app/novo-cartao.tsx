@@ -15,8 +15,9 @@ export default function NovoCartao() {
 
   const handleAdicionar = () => {
     adicionarCartao({ nome, numero, codigo, vencimento, bandeira });
-    router.push('/credito'); // volta para tela de crédito
+    router.back();
   };
+
 
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">

@@ -10,7 +10,7 @@ export default function Profile() {
 
   // Lista de ações do perfil
   const actions = [
-    { name: 'Editar Perfil', route: '/editarPerfil', iconLeft: require('../../assets/images/editarC.png'), iconRight: require('../../assets/images/seta-direita.png') },
+    { name: 'Editar Perfil', route: '/editar_perfil', iconLeft: require('../../assets/images/editarC.png'), iconRight: require('../../assets/images/seta-direita.png') },
     { name: 'Meus Pedidos', route: '/pedidos', iconLeft: require('../../assets/images/sacolaC.png'), iconRight: require('../../assets/images/seta-direita.png') },
     { name: 'Manipulados', route: '/manipulados/solicitacoes', iconLeft: require('../../assets/images/vitamina.png'), iconRight: require('../../assets/images/seta-direita.png') },
     { name: 'Privacidade', route: '/privacidade', iconLeft: require('../../assets/images/privacidade.png'), iconRight: require('../../assets/images/seta-direita.png') },
@@ -60,7 +60,7 @@ export default function Profile() {
       </View>
 
       {/* Botão sair */}
-      <TouchableOpacity style={styles.logoutButton} onPress={() => router.replace('/bemvindo')}>
+      <TouchableOpacity style={styles.logoutButton} onPress={() => router.replace('/sair')}>
         <Image source={require('../../assets/images/sair.png')} style={styles.logoutIcon} />
         <Text style={styles.logoutText}>Sair</Text>
       </TouchableOpacity>

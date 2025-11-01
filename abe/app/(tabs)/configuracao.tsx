@@ -11,7 +11,7 @@ export default function Configuracoes() {
     { name: 'Segurança', route: '/seguranca', iconLeft: require('../../assets/images/seguranca.png'), iconRight: require('../../assets/images/seta-direita.png') },
     { name: 'Endereço', route: '/localizacoes', iconLeft: require('../../assets/images/local.png'), iconRight: require('../../assets/images/seta-direita.png') },
     { name: 'Cartões', route: '/cartoes', iconLeft: require('../../assets/images/cartaoC.png'), iconRight: require('../../assets/images/seta-direita.png') },
-    { name: 'Excluir Conta', route: '/excluirConta', iconLeft: require('../../assets/images/excluir.png'), iconRight: require('../../assets/images/seta-direita.png') },
+    { name: 'Excluir Conta', route: '/excluir_conta', iconLeft: require('../../assets/images/excluir.png'), iconRight: require('../../assets/images/seta-direita.png') },
   ];
 
   return (
