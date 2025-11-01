@@ -28,7 +28,7 @@ export default function ExcluirConta() {
 
         <View style={estilos.circuloIcone}>
           <Image
-            source={require('../assets/images/excluir.png')} // ícone da lixeira
+            source={require('../assets/images/excluir.png')} 
             style={estilos.iconeCentral}
           />
         </View>
