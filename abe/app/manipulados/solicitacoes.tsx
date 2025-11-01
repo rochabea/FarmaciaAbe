@@ -41,7 +41,7 @@ const MOCK_DATA: Solicitacao[] = [
   },
 ];
 
-// ---------- CHIP DE STATUS ----------
+/* ---------- CHIP DE STATUS ---------- */
 function StatusChip({ status }: { status: Status }) {
   const { bg, fg } = useMemo(() => {
     switch (status) {
@@ -50,7 +50,7 @@ function StatusChip({ status }: { status: Status }) {
       case "Rejeitado":
         return { bg: "#FFEBEE", fg: "#C62828" };
       default:
-        return { bg: "#ECE7F6", fg: "#4B3E6A" }; // pendente
+        return { bg: "#ECE7F6", fg: "#4B3E6A" }; // Pendente
     }
   }, [status]);
 
@@ -61,7 +61,7 @@ function StatusChip({ status }: { status: Status }) {
   );
 }
 
-// ---------- LINHA DE ANEXO ----------
+/* ---------- LINHA DE ANEXO ---------- */
 const AttachmentRow = memo(function AttachmentRow({
   label,
   onOpen,
@@ -84,36 +84,44 @@ const AttachmentRow = memo(function AttachmentRow({
   );
 });
 
-// ---------- CARD DA SOLICITAÇÃO ----------
-const SolicitacaoCard = memo(function SolicitacaoCard({ item }: { item: Solicitacao }) {
+/* ---------- CARD CLICÁVEL ---------- */
+const SolicitacaoCard = memo(function SolicitacaoCard({
+  item,
+  onPress,
+}: {
+  item: Solicitacao;
+  onPress: () => void;
+}) {
   const handleOpen = () => Alert.alert("Abrir anexo", "Aqui abre o PDF da solicitação");
   const handleDownload = () => Alert.alert("Download", "Aqui baixa o PDF");
 
   return (
-    <View style={styles.card}>
-      <Text style={styles.cardHint}>Analise os detalhes antes de aprovar ou rejeitar</Text>
+    <TouchableOpacity onPress={onPress} activeOpacity={0.85}>
+      <View style={styles.card}>
+        <Text style={styles.cardHint}>Analise os detalhes antes de aprovar ou rejeitar</Text>
 
-      <View style={{ gap: 2 }}>
-        <Text style={styles.detailText}>Número da solicitação: {item.numero}</Text>
-        <Text style={styles.detailText}>Data da solicitação: {item.dataSolicitacao}</Text>
-        <Text style={styles.detailText}>Nome do paciente/cliente: {item.paciente}</Text>
+        <View style={{ gap: 2 }}>
+          <Text style={styles.detailText}>Número da solicitação: {item.numero}</Text>
+          <Text style={styles.detailText}>Data da solicitação: {item.dataSolicitacao}</Text>
+          <Text style={styles.detailText}>Nome do paciente/cliente: {item.paciente}</Text>
+        </View>
+
+        <AttachmentRow
+          label={item.anexoLabel ?? "Anexo"}
+          onOpen={handleOpen}
+          onDownload={handleDownload}
+        />
+
+        <View style={styles.statusRow}>
+          <Text style={styles.statusLabel}>Status:</Text>
+          <StatusChip status={item.status} />
+        </View>
       </View>
-
-      <AttachmentRow
-        label={item.anexoLabel ?? "Anexo"}
-        onOpen={handleOpen}
-        onDownload={handleDownload}
-      />
-
-      <View style={styles.statusRow}>
-        <Text style={styles.statusLabel}>Status:</Text>
-        <StatusChip status={item.status} />
-      </View>
-    </View>
+    </TouchableOpacity>
   );
 });
 
-// ---------- TELA PRINCIPAL ----------
+/* ---------- TELA PRINCIPAL ---------- */
 export default function SolicitacoesScreen() {
   const router = useRouter();
 
@@ -123,9 +131,7 @@ export default function SolicitacoesScreen() {
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() =>
-            router.canGoBack()
-              ? router.back()
-              : router.push("/(tabs)/conta") // fallback → volta pro perfil
+            router.canGoBack() ? router.back() : router.push("/(tabs)/conta")
           }
           style={styles.headerBtn}
         >
@@ -154,7 +160,22 @@ export default function SolicitacoesScreen() {
         keyExtractor={(it) => it.id}
         contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 120 }}
         ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
-        renderItem={({ item }) => <SolicitacaoCard item={item} />}
+        renderItem={({ item }) => (
+          <SolicitacaoCard
+            item={item}
+            onPress={() =>
+              router.push({ "/manipulados/aprovados",
+                params: {
+                  id: item.id,
+                  n: item.numero,
+                  d1: "01/10/2025",
+                  d2: "03/10/2025",
+                  d3: "—",
+                },
+              })
+            }
+          />
+        )}
       />
 
       {/* Botão flutuante */}
@@ -168,7 +189,7 @@ export default function SolicitacoesScreen() {
   );
 }
 
-// ---------- ESTILOS ----------
+/* ---------- ESTILOS ---------- */
 const HEADER_BG = "#2F235A";
 const CARD_BG = "#F3F4F6";
 const TEXT_PRIMARY = "#111827";

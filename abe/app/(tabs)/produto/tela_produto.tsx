@@ -91,7 +91,7 @@ export default function TelaProduto() {
           {!!product.subtitle && <Text style={styles.subtitle}>{product.subtitle}</Text>}
 
           <TouchableOpacity
-            onPress={() => router.push("./manipulados/envio")}
+            onPress={() => router.push("/manipulados/envio_manipulados")}
             activeOpacity={0.7}
           >
             <Text style={styles.link}>Enviar para manipulação</Text>

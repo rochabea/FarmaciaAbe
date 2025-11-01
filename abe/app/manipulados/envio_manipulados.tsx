@@ -40,10 +40,7 @@ export default function EnvioManipulados() {
 
   const enviar = () => {
     if (!file) return;
-    Alert.alert(
-      "Envio",
-      `PDF anexado:\n${file.name ?? "(sem nome)"}\n\n(Simule aqui o upload ao seu backend)`
-    );
+    router.replace("/manipulados/analise");
   };
 
   return (
