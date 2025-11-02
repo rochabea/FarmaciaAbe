@@ -1,38 +1,38 @@
-// app/(tabs)/notificacoes.tsx
 import React, { useState } from "react";
 import { StyleSheet, TouchableOpacity, FlatList, Platform } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { Text, View } from "@/components/Themed";
+// se preferir, troque por: import { View, Text } from "react-native";
+import { View, Text } from "@/components/Themed";
 
 const COLORS = {
   primary: "#242760",
   card: "#F4F4F7",
   white: "#FFFFFF",
-  textDark: "#0B0B0B",
-  textLink: "#242760",
+  text: "#0B0B0B",
+  link: "#242760",
 };
 
-const HEADER_H = 140;
-const BELL = 92;
-const CONTENT_MAX_W = 560;
+const HEADER_H = 160; // um pouco maior pra curva
+const BELL = 90;
+const MAX_W = 420;
 
-export default function NotificacoesScreen() {
+export default function NotificationsScreen() {
   const router = useRouter();
   const [items, setItems] = useState<string[]>([
-    "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nxxxxxxxx",
-    "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "Seu pedido #1234 saiu para entrega.",
+    "Promoção: 10% OFF em vitaminas até hoje!",
   ]);
 
-  const removeItem = (i: number) => setItems(prev => prev.filter((_, idx) => idx !== i));
+  const remove = (i: number) => setItems(prev => prev.filter((_, idx) => idx !== i));
 
   return (
     <SafeAreaView style={styles.safe} edges={["top", "left", "right"]}>
-      {/* HEADER CURVO CUSTOM */}
+      {/* HEADER FULL-BLEED (fora do container) */}
       <View style={styles.header}>
         <View style={styles.headerRow}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.iconBtn} accessibilityLabel="Voltar">
+          <TouchableOpacity style={styles.iconBtn} onPress={() => router.back()} accessibilityLabel="Voltar">
             <Ionicons name="chevron-back" size={24} color={COLORS.white} />
           </TouchableOpacity>
 
@@ -43,72 +43,76 @@ export default function NotificacoesScreen() {
           </View>
         </View>
 
-        {/* Sino central sobreposto */}
+        {/* Sino central */}
         <View style={styles.bellWrapper}>
           <View style={styles.bellCircle}>
-            <Ionicons name="notifications-outline" size={42} color={COLORS.primary} />
+            <Ionicons name="notifications-outline" size={40} color={COLORS.primary} />
           </View>
         </View>
       </View>
 
-      {/* LISTA DE NOTIFICAÇÕES */}
-      <FlatList
-        contentContainerStyle={styles.listContainer}
-        data={items}
-        keyExtractor={(_, i) => String(i)}
-        renderItem={({ item, index }) => (
-          <View style={styles.cardRow}>
-            <View style={styles.cardLeft}>
-              <Text numberOfLines={2} style={styles.cardText}>{item}</Text>
+      {/* CONTAINER CENTRALIZADO DO CONTEÚDO */}
+      <View style={styles.page}>
+        <FlatList
+          contentContainerStyle={styles.listContent}
+          data={items}
+          keyExtractor={(_, i) => String(i)}
+          renderItem={({ item, index }) => (
+            <View style={styles.card}>
+              <Text style={styles.cardText}>{item}</Text>
+              <TouchableOpacity onPress={() => remove(index)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                <Text style={styles.remove}>Remover</Text>
+              </TouchableOpacity>
             </View>
-
-            <TouchableOpacity onPress={() => removeItem(index)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-              <Text style={styles.removeText}>Remover</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-        ListEmptyComponent={
-          <View style={{ alignItems: "center", marginTop: 40 }}>
-            <Text style={{ opacity: 0.6 }}>Sem notificações no momento.</Text>
-          </View>
-        }
-      />
+          )}
+          ListEmptyComponent={
+            <View style={{ alignItems: "center", marginTop: 24 }}>
+              <Text style={{ opacity: 0.6 }}>Sem notificações.</Text>
+            </View>
+          }
+        />
+      </View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: COLORS.white },
+  safe: {
+    flex: 1,
+    backgroundColor: COLORS.white,
+  },
 
+  /* HEADER ocupa 100% da tela (sem borda branca ao redor) */
   header: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
     height: HEADER_H,
     backgroundColor: COLORS.primary,
     borderBottomLeftRadius: 28,
     borderBottomRightRadius: 28,
-    paddingHorizontal: 16,
-    justifyContent: "flex-start",
     overflow: "hidden",
+    paddingHorizontal: 16,
+    zIndex: 10,
   },
-
   headerRow: {
+    height: 50,
+    marginTop: 6,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    height: 48,
-    marginTop: 4,
   },
-
   iconBtn: { width: 40, height: 40, alignItems: "center", justifyContent: "center" },
-
   headerTitle: { color: COLORS.white, fontSize: 20, fontWeight: "700" },
 
   bellWrapper: {
     position: "absolute",
-    bottom: -(BELL / 2) + 6,
-    width: "100%",
+    bottom: -(BELL / 2) + 8,
+    left: 0,
+    right: 0,
     alignItems: "center",
   },
-
   bellCircle: {
     width: BELL,
     height: BELL,
@@ -116,9 +120,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.white,
     alignItems: "center",
     justifyContent: "center",
-    borderWidth: 2,
-    borderColor: COLORS.white,
-    zIndex: 5,
+    zIndex: 11,
     elevation: 5,
     shadowColor: "#000",
     shadowOpacity: Platform.OS === "ios" ? 0.15 : 0.2,
@@ -126,26 +128,29 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
   },
 
-  listContainer: {
-    paddingTop: BELL / 2 + 20,
+  /* Conteúdo centralizado; dá espaço pro header + sino sobreposto */
+  page: {
+    flex: 1,
+    alignSelf: "center",
+    width: "100%",
+    maxWidth: MAX_W,
+    paddingHorizontal: 16,
+    paddingTop: HEADER_H / 2 + BELL / 2 + 24, // afasta do header curvo + sino
+  },
+  listContent: {
     paddingBottom: 24,
-    alignItems: "center",
     gap: 12,
   },
 
-  cardRow: {
-    width: "94%",
-    maxWidth: CONTENT_MAX_W,
+  card: {
     backgroundColor: COLORS.card,
-    borderRadius: 8,
+    borderRadius: 12,
     paddingVertical: 14,
     paddingHorizontal: 14,
     flexDirection: "row",
     alignItems: "flex-start",
     justifyContent: "space-between",
   },
-
-  cardLeft: { flex: 1, paddingRight: 12 },
-  cardText: { color: COLORS.textDark },
-  removeText: { fontWeight: "600", color: COLORS.textLink },
+  cardText: { color: COLORS.text, flex: 1, paddingRight: 12 },
+  remove: { color: COLORS.link, fontWeight: "600" },
 });

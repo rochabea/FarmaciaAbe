@@ -21,6 +21,15 @@ export default function RootLayout() {
             {/* Suas rotas de página “normais” */}
             <Stack.Screen name="medicamentos" />
 
+            <Stack.Screen
+              name="modal-notifications"
+              options={{
+                presentation: "modal", // transição de modal (iOS/Android)
+                headerShown: false,     // evita a faixa branca
+                contentStyle: { backgroundColor: "#FFFFFF" },
+              }}
+            />
+
             
             <Stack.Screen
               name="modals"
