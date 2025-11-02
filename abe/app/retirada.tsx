@@ -25,7 +25,7 @@ export default function Retirada() {
 
         <Text style={styles.topTitle}>Retirada</Text>
 
-        <TouchableOpacity style={styles.notification}>
+        <TouchableOpacity style={styles.notification}  onPress={() => router.push("/notificacao")}>
           <Image source={require('../assets/images/notificacaoB.png')} style={styles.notificationIcon} />
         </TouchableOpacity>
 

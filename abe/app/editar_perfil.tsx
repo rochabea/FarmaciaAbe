@@ -1,14 +1,5 @@
 import React, { useState } from 'react';
-import { 
-  View, 
-  Text, 
-  TextInput, 
-  TouchableOpacity, 
-  StyleSheet, 
-  Image, 
-  ScrollView, 
-  KeyboardAvoidingView 
-} from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, ScrollView, KeyboardAvoidingView } from 'react-native';
 import { useRouter } from 'expo-router';
 
 export default function EditarPerfil() {
@@ -21,26 +12,20 @@ export default function EditarPerfil() {
   const [telefone, setTelefone] = useState('(61) 900000-0000');
 
   const handleSalvar = () => {
-    // Lógica para salvar alterações
-    router.back(); // volta para a tela anterior
+    router.back(); 
   };
 
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         
-        {/* Botão Voltar */}
         <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
           <Image 
             source={require('../assets/images/seta-esquerda.png')} 
             style={styles.backIcon} 
           />
         </TouchableOpacity>
-
-        {/* Título */}
         <Text style={styles.title}>Edite Seu Perfil</Text>
-
-        {/* Avatar */}
         <View style={styles.centralBox}>
           <View style={styles.avatarContainer}>
             <Image 
@@ -56,7 +41,6 @@ export default function EditarPerfil() {
           </View>
         </View>
 
-        {/* Formulário */}
         <View style={styles.formContainer}>
           <Text style={styles.label}>Nome</Text>
           <TextInput style={styles.input} value={nome} onChangeText={setNome} />

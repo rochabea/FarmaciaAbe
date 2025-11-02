@@ -37,7 +37,7 @@ export default function Orders() {
 
         <Text style={styles.topTitle}>Meus Pedidos</Text>
 
-        <TouchableOpacity style={styles.notification}>
+        <TouchableOpacity style={styles.notification} onPress={() => router.push("/notificacao")}>
           <Image source={require('../../assets/images/notificacaoB.png')} style={styles.notificationIcon} />
         </TouchableOpacity>
 

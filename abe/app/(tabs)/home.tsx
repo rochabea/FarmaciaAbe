@@ -34,7 +34,7 @@ export default function TabOneScreen() {
         <Image source={require("../../assets/images/logo.png")} style={styles.logo} resizeMode="contain" />
 
         {/* ABRIR MODAL DE NOTIFICAÇÕES */}
-        <TouchableOpacity onPress={() => router.push("/modal")}>
+        <TouchableOpacity onPress={() => router.push("/notificacao")}>
           <Image source={require("../../assets/images/notificacao.png")} style={styles.icon} />
         </TouchableOpacity>
       </View>

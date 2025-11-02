@@ -40,7 +40,7 @@ export default function Cesta() {
 
         <Text style={styles.topTitle}>Cesta</Text>
 
-        <TouchableOpacity style={styles.notification}>
+        <TouchableOpacity style={styles.notification} onPress={() => router.push("/notificacao")}>
           <Image source={require('../assets/images/notificacaoB.png')} style={styles.notificationIcon} />
         </TouchableOpacity>
 

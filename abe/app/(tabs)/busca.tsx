@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity, ScrollView, TextInput } from 'react-native';
-
+import { useRouter } from 'expo-router';
 export default function SearchScreen() {
   const [searchText, setSearchText] = useState('');
+  const router = useRouter();
 
   const categories = [
     { name: 'Medicamentos', icon: require('../../assets/images/medicamentos.png') },
@@ -25,7 +26,7 @@ export default function SearchScreen() {
 
         <Image source={require('../../assets/images/logo.png')} style={styles.logo} resizeMode="contain" />
 
-        <TouchableOpacity>
+        <TouchableOpacity onPress={() => router.push("/notificacao")}>
           <Image source={require('../../assets/images/notificacao.png')} style={styles.icon} />
         </TouchableOpacity>
       </View>

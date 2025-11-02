@@ -27,7 +27,7 @@ const subtotalValor = params.subtotal ? parseFloat(params.subtotal as string) : 
         <Image source={require('../assets/images/seta-esquerda.png')} style={styles.backIcon} />
         </TouchableOpacity>
         <Text style={styles.topTitle}>Entregas</Text>
-        <TouchableOpacity style={styles.notification}>
+        <TouchableOpacity style={styles.notification} onPress={() => router.push("/notificacao")}>
           <Image source={require('../assets/images/notificacaoB.png')} style={styles.notificationIcon} />
         </TouchableOpacity>
         <View style={styles.iconCircle}>

@@ -27,7 +27,7 @@ export default function ResumoRetirada() {
 
         <Text style={styles.topTitle}>Resumo da Retirada</Text>
 
-        <TouchableOpacity style={styles.notification}>
+        <TouchableOpacity style={styles.notification} onPress={() => router.push("/notificacao")}>
           <Image source={require('../assets/images/notificacaoB.png')} style={styles.notificationIcon} />
         </TouchableOpacity>
 

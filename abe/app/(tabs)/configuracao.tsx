@@ -23,7 +23,7 @@ export default function Configuracoes() {
 
         <Text style={styles.topTitle}>Configurações</Text>
 
-        <TouchableOpacity style={styles.notification}>
+        <TouchableOpacity style={styles.notification} onPress={() => router.push("/notificacao")}>
           <Image source={require('../../assets/images/notificacaoB.png')} style={styles.notificationIcon} />
         </TouchableOpacity>
 
