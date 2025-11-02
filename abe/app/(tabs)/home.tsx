@@ -33,7 +33,8 @@ export default function TabOneScreen() {
 
         <Image source={require("../../assets/images/logo.png")} style={styles.logo} resizeMode="contain" />
 
-        <TouchableOpacity onPress={() => router.push("/modals/notificacoes")}>
+        {/* ABRIR MODAL DE NOTIFICAÇÕES */}
+        <TouchableOpacity onPress={() => router.push("/modal")}>
           <Image source={require("../../assets/images/notificacao.png")} style={styles.icon} />
         </TouchableOpacity>
       </View>
@@ -62,20 +63,20 @@ export default function TabOneScreen() {
         {/* Categorias */}
         <Text style={styles.sectionTitle}>Categorias</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ paddingLeft: 20 }}>
-          {categories.map((cat, index) => {
+          {categories.map((cat) => {
             const Card = (
-              <View key={index} style={styles.categoryBox}>
+              <View style={styles.categoryBox}>
                 <Image source={cat.icon} style={styles.categoryIcon} resizeMode="contain" />
                 <Text style={styles.categoryText}>{cat.name}</Text>
               </View>
             );
 
             return cat.name === "Medicamentos" ? (
-              <Link key={index} href="/medicamentos" asChild>
+              <Link key={cat.name} href="/medicamentos" asChild>
                 <TouchableOpacity activeOpacity={0.8}>{Card}</TouchableOpacity>
               </Link>
             ) : (
-              Card
+              <View key={cat.name}>{Card}</View>
             );
           })}
         </ScrollView>
@@ -83,11 +84,11 @@ export default function TabOneScreen() {
         {/* Destaques */}
         <Text style={styles.sectionTitle}>Destaques</Text>
         <View style={styles.highlightsGrid}>
-          {highlights.map((item, index) => {
+          {highlights.map((item) => {
             const id = slugify(item.name);
             return (
               <TouchableOpacity
-                key={index}
+                key={id}
                 style={styles.highlightBoxGrid}
                 activeOpacity={0.9}
                 onPress={() =>
