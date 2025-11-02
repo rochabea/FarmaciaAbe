@@ -1,8 +1,9 @@
 import React, { useState } from "react";
 import { View, Text, Image, StyleSheet, TouchableOpacity, ScrollView } from "react-native";
-import { Link, router } from "expo-router";
+import { Link, useRouter } from "expo-router";
 
 export default function TabOneScreen() {
+  const router = useRouter();
   const [showOffer, setShowOffer] = useState(true);
 
   const categories = [
@@ -32,7 +33,7 @@ export default function TabOneScreen() {
 
         <Image source={require("../../assets/images/logo.png")} style={styles.logo} resizeMode="contain" />
 
-        <TouchableOpacity>
+        <TouchableOpacity onPress={() => router.push("/modals/notificacoes")}>
           <Image source={require("../../assets/images/notificacao.png")} style={styles.icon} />
         </TouchableOpacity>
       </View>

@@ -10,12 +10,11 @@ export default function ManipuladosLayout() {
         contentStyle: { backgroundColor: "#FFFFFF" },
       }}
     >
-      { /* <Stack.Screen name="solicitacoes" />
-      {/* próximas telas que você criar */}
+      <Stack.Screen name="solicitacoes" />
       <Stack.Screen name="analise" />
-      <Stack.Screen name="aprovados" />
+      <Stack.Screen name="status_manipulados" />
       <Stack.Screen name="rejeitados" />
-      <Stack.Screen name="detalhes" />
+      <Stack.Screen name="envio_manipulados" />
     </Stack>
   );
 }

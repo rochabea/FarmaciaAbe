@@ -164,7 +164,8 @@ export default function SolicitacoesScreen() {
           <SolicitacaoCard
             item={item}
             onPress={() =>
-              router.push({ "/manipulados/aprovados",
+              router.push({
+                pathname: "/manipulados/status_manipulados",
                 params: {
                   id: item.id,
                   n: item.numero,
@@ -176,6 +177,7 @@ export default function SolicitacoesScreen() {
             }
           />
         )}
+
       />
 
       {/* Botão flutuante */}
