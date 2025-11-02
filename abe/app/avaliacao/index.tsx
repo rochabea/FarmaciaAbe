@@ -58,8 +58,9 @@ export default function AvaliacaoScreen() {
     Alert.alert("Obrigado!", "Sua avaliação foi enviada com sucesso.");
     setRating(0);
     setComment("");
-    router.back();
+    router.replace("/(tabs)/home");
   };
+  
 
   return (
     <KeyboardAvoidingView
@@ -68,12 +69,13 @@ export default function AvaliacaoScreen() {
     >
       {/* HEADER */}
       <View style={styles.topRect}>
-        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+        <TouchableOpacity style={styles.backButton} onPress={() => router.replace("/(tabs)/home")}>
           <Image
             source={require("../../assets/images/seta-esquerda.png")}
             style={styles.backIcon}
           />
         </TouchableOpacity>
+        
 
         <Text style={styles.topTitle}>Avaliação</Text>
 

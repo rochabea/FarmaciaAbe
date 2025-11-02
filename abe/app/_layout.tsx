@@ -1,41 +1,32 @@
-import FontAwesome from '@expo/vector-icons/FontAwesome';
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { Stack } from 'expo-router';
-import React from 'react';
-import { CartaoProvider } from './parametros/CartaoContext';
-import { useColorScheme } from '@/components/useColorScheme';
+import React from "react";
+import { DarkTheme, DefaultTheme, ThemeProvider } from "@react-navigation/native";
+import { Stack } from "expo-router";
+import { useColorScheme } from "@/components/useColorScheme";
 
-export { ErrorBoundary } from 'expo-router';
-export const unstable_settings = { initialRouteName: '(tabs)' };
+// IMPORTS COMO DEFAULT:
+import CartaoProvider from "./parametros/CartaoContext";
+import CartProvider from "./context/CartContext";
+
+export { ErrorBoundary } from "expo-router";
+export const unstable_settings = { initialRouteName: "(tabs)" };
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
+  const colorScheme = useColorScheme?.() ?? "light"; // protege caso o hook não exista
 
   return (
     <CartaoProvider>
-        <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-          <Stack screenOptions={{ headerShown: false }}>
-            {/* Grupo de tabs */}
+      <CartProvider>
+        <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
+          <Stack
+            screenOptions={{
+              headerShown: false,
+              contentStyle: { backgroundColor: "#FFFFFF" },
+            }}
+          >
             <Stack.Screen name="(tabs)" />
-
-            {/* Suas rotas de página “normais” */}
-            <Stack.Screen name="medicamentos" />
-
-            <Stack.Screen
-              name="modal-notifications"
-              options={{
-                presentation: "modal", // transição de modal (iOS/Android)
-                headerShown: false,     // evita a faixa branca
-                contentStyle: { backgroundColor: "#FFFFFF" },
-              }}
-            />
-
-            
-            <Stack.Screen
-              name="modals"
-              options={{ headerShown: false }} />
           </Stack>
         </ThemeProvider>
-      </CartaoProvider>
+      </CartProvider>
+    </CartaoProvider>
   );
 }

@@ -1,5 +1,5 @@
 import React, { createContext, useState } from 'react';
-
+export default CartaoProvider;
 export const CartaoContext = createContext();
 
 export function CartaoProvider({ children }) {

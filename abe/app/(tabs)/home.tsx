@@ -1,10 +1,81 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { View, Text, Image, StyleSheet, TouchableOpacity, ScrollView } from "react-native";
 import { Link, useRouter } from "expo-router";
+import { supabase, __debugSupabase } from "../../lib/supabase";
+
+type Product = {
+  id: string;
+  name: string;
+  price_cents: number;
+  image_url?: string | null;
+};
 
 export default function TabOneScreen() {
   const router = useRouter();
   const [showOffer, setShowOffer] = useState(true);
+  const [highlights, setHighlights] = useState<Product[]>([]);
+
+  // Diagnóstico: confira se URL e KEY chegaram via .env
+  useEffect(() => {
+    console.log("🔎 Supabase debug:", __debugSupabase());
+  }, []);
+
+  // Log simples de 5 produtos (apenas console)
+  useEffect(() => {
+    (async () => {
+      try {
+        if (!supabase || typeof (supabase as any).from !== "function") {
+          console.error("❌ supabase inválido. Verifique o export em lib/supabase.ts e o caminho '../../lib/supabase'.");
+          return;
+        }
+        const { data, error } = await supabase
+          .from<"products", Product>("products")
+          .select("id, name, price_cents, image_url")
+          .order("name", { ascending: true })
+          .limit(5);
+
+        if (error) {
+          console.error("❌ Erro Supabase:", error.message);
+        } else {
+          console.log("🟢 Produtos recebidos do Supabase:");
+          console.table(
+            (data ?? []).map((p) => ({
+              id: p.id,
+              nome: p.name,
+              preco: (p.price_cents / 100).toFixed(2),
+              imagem: p.image_url,
+            }))
+          );
+        }
+      } catch (e: any) {
+        console.error("💥 Exceção ao consultar Supabase:", e?.message ?? e);
+      }
+    })();
+  }, []);
+
+  // Carrega os destaques reais (renderiza na tela)
+  useEffect(() => {
+    (async () => {
+      try {
+        if (!supabase || typeof (supabase as any).from !== "function") return;
+
+        const { data, error } = await supabase
+          .from("products")
+          .select("id, name, price_cents, image_url")
+          .order("created_at", { ascending: false })
+          .limit(8);
+
+        if (error) {
+          console.error("Erro ao buscar produtos:", error.message);
+        } else {
+          setHighlights(data ?? []);
+          console.log("🟢 Produtos carregados (destaques):", data);
+        }
+      } catch (e: any) {
+        console.error("💥 Exceção ao carregar destaques:", e?.message ?? e);
+      }
+    })();
+  }, []);
 
   const categories = [
     { name: "Medicamentos", icon: require("../../assets/images/medicamentos.png") },
@@ -12,16 +83,6 @@ export default function TabOneScreen() {
     { name: "Maternidade",  icon: require("../../assets/images/bebe.png") },
     { name: "Cosméticos",   icon: require("../../assets/images/cosmeticos.png") },
   ];
-
-  const highlights = [
-    { name: "Aspirina",    icon: require("../../assets/images/remedio.png") },
-    { name: "Paracetamol", icon: require("../../assets/images/remedio.png") },
-    { name: "Ibuprofeno",  icon: require("../../assets/images/remedio.png") },
-    { name: "Vitamina C",  icon: require("../../assets/images/remedio.png") },
-  ];
-
-  const slugify = (s: string) =>
-    s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/\s+/g, "-");
 
   return (
     <View style={styles.container}>
@@ -33,14 +94,13 @@ export default function TabOneScreen() {
 
         <Image source={require("../../assets/images/logo.png")} style={styles.logo} resizeMode="contain" />
 
-        {/* ABRIR MODAL DE NOTIFICAÇÕES */}
         <TouchableOpacity onPress={() => router.push("/notificacao")}>
           <Image source={require("../../assets/images/notificacao.png")} style={styles.icon} />
         </TouchableOpacity>
       </View>
 
       <ScrollView contentContainerStyle={{ paddingBottom: 20 }}>
-        {/* BANNER DE OFERTAS -> redireciona para /promo */}
+        {/* BANNER DE OFERTAS -> /promo */}
         {showOffer && (
           <Link href="/promo" asChild>
             <TouchableOpacity activeOpacity={0.9} style={styles.offerBox}>
@@ -48,7 +108,6 @@ export default function TabOneScreen() {
               <Text style={styles.offerTitle}>OFERTAS</Text>
               <Text style={styles.offerSubtitle}>Veja as ofertas da semana</Text>
 
-              {/* Fechar banner (não navega) */}
               <TouchableOpacity
                 style={styles.closeButton}
                 onPress={() => setShowOffer(false)}
@@ -65,49 +124,67 @@ export default function TabOneScreen() {
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ paddingLeft: 20 }}>
           {categories.map((cat) => {
             const Card = (
-              <View style={styles.categoryBox}>
+              <View key={cat.name} style={styles.categoryBox}>
                 <Image source={cat.icon} style={styles.categoryIcon} resizeMode="contain" />
                 <Text style={styles.categoryText}>{cat.name}</Text>
               </View>
             );
-
             return cat.name === "Medicamentos" ? (
               <Link key={cat.name} href="/medicamentos" asChild>
                 <TouchableOpacity activeOpacity={0.8}>{Card}</TouchableOpacity>
               </Link>
             ) : (
-              <View key={cat.name}>{Card}</View>
+              Card
             );
           })}
         </ScrollView>
 
-        {/* Destaques */}
+        {/* Destaques (dados reais) */}
         <Text style={styles.sectionTitle}>Destaques</Text>
-        <View style={styles.highlightsGrid}>
-          {highlights.map((item) => {
-            const id = slugify(item.name);
-            return (
+
+        {highlights.length === 0 ? (
+          <Text style={{ textAlign: "center", marginTop: 16, color: "#888" }}>
+            Carregando produtos...
+          </Text>
+        ) : (
+          <View style={styles.highlightsGrid}>
+            {highlights.map((item) => (
               <TouchableOpacity
-                key={id}
+                key={item.id}
                 style={styles.highlightBoxGrid}
                 activeOpacity={0.9}
                 onPress={() =>
                   router.push({
                     pathname: "/produto/tela_produto",
-                    params: { id },
+                    params: { id: item.id },
                   })
                 }
               >
-                <Image source={item.icon} style={styles.highlightIconGrid} resizeMode="contain" />
+                {item.image_url ? (
+                  <Image
+                    source={{ uri: item.image_url }}
+                    style={styles.highlightIconGrid}
+                    resizeMode="contain"
+                  />
+                ) : (
+                  <Image
+                    source={require("../../assets/images/remedio.png")}
+                    style={styles.highlightIconGrid}
+                    resizeMode="contain"
+                  />
+                )}
+
                 <View style={{ width: "100%", paddingHorizontal: 10 }}>
                   <Text style={styles.highlightName}>{item.name}</Text>
                   <Text style={styles.highlightSubtitle}>Oferta por</Text>
-                  <Text style={styles.highlightPrice}>R$ 10,99</Text>
+                  <Text style={styles.highlightPrice}>
+                    R$ {(item.price_cents / 100).toFixed(2)}
+                  </Text>
                 </View>
               </TouchableOpacity>
-            );
-          })}
-        </View>
+            ))}
+          </View>
+        )}
       </ScrollView>
     </View>
   );

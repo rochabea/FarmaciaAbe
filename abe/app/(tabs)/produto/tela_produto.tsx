@@ -1,3 +1,4 @@
+// app/(tabs)/produto/tela_produto.tsx
 import React, { useMemo, useState } from "react";
 import {
   View,
@@ -10,6 +11,7 @@ import {
   Alert,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import { useCart } from "../../context/CartContext";
 
 const NAVY = "#242760";
 const GRAY = "#6B7280";
@@ -32,15 +34,16 @@ const money = (v?: number) =>
 
 export default function TelaProduto() {
   const router = useRouter();
+  const { addItem } = useCart(); // << pega ação do carrinho
   const { id } = useLocalSearchParams<{ id?: string }>();
 
-  // --- mock simples; troque por fetch/Context quando quiser
+  // mock simples — troque por fetch do Supabase quando quiser
   const product: Product = useMemo(
     () => ({
       id: (id as string) || "aspirina",
       name: "Aspirina Ácido Acetilsalicílico 500mg 20 comprimidos",
       subtitle: "Para esse item não é necessário receita médica",
-      price: undefined, // “R$ XX,XX”
+      price: 19.9, // << precisa ser número para somar no carrinho
       image: require("../../../assets/images/remedio.png"),
     }),
     [id]
@@ -50,7 +53,15 @@ export default function TelaProduto() {
   const inc = () => setQty((q) => Math.min(99, q + 1));
 
   const onBuy = () => {
-    Alert.alert("Carrinho", `${qty}x ${product.name} — ${money(product.price)}`);
+    // adiciona ao carrinho (UI otimista) e vai para a cesta
+    addItem({
+      id: product.id,
+      name: product.name,
+      price: product.price ?? 0,
+      image: product.image,
+      qty,
+    });
+    router.push("/cesta");
   };
 
   return (
@@ -139,11 +150,11 @@ export default function TelaProduto() {
 
           <View style={styles.descCard}>
             <Text style={styles.descText} numberOfLines={6}>
-              Lorem ipsum dolor sit amet, Qui libero totam eos voluptatem sed id
-              ratione. Assumenda numquam consequatur molestiae sunt, dolores
-              mollitia in! Quis velit, recusandae earum eaque dignissimos
-              aliquid aspernatur cum explicabo! At iusto ratione et deserunt non
-              suscipit. At accusantium cupiditate est nobis accusantium et culpa ipsa.
+              Lorem ipsum dolor sit amet, Qui libero totam eos voluptatem sed id ratione.
+              Assumenda numquam consequatur molestiae sunt, dolores mollitia in! Quis velit,
+              recusandae earum eaque dignissimos aliquid aspernatur cum explicabo! At iusto
+              ratione et deserunt non suscipit. At accusantium cupiditate est nobis accusantium
+              et culpa ipsa.
             </Text>
           </View>
         </View>
@@ -177,11 +188,7 @@ const styles = StyleSheet.create({
 
   prodImage: { width: "100%", height: 150, marginTop: 12 },
 
-  subtitle: {
-    textAlign: "center",
-    color: GRAY,
-    fontSize: 12,
-  },
+  subtitle: { textAlign: "center", color: GRAY, fontSize: 12 },
 
   priceRow: {
     flexDirection: "row",
@@ -202,20 +209,11 @@ const styles = StyleSheet.create({
   },
   buyTxt: { color: "#fff", fontWeight: "700", fontSize: 15 },
 
-  linkRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: 12,
-  },
+  linkRow: { flexDirection: "row", alignItems: "center", marginTop: 12 },
   linkText: { fontSize: 14, color: TEXT, textDecorationLine: "underline" },
   linkSub: { fontSize: 12, color: GRAY, marginTop: 2 },
 
-  checkboxRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: 14,
-    gap: 8,
-  },
+  checkboxRow: { flexDirection: "row", alignItems: "center", marginTop: 14, gap: 8 },
   checkbox: {
     width: 18,
     height: 18,
