@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, Image, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator } from "react-native";
 import { Link, useRouter } from "expo-router";
+import { createClient } from "@supabase/supabase-js";
+import "react-native-url-polyfill/auto";
 
 type Product = {
   id: string;
@@ -13,6 +15,16 @@ type Product = {
 const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL!;
 const SUPABASE_ANON = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY!;
 
+// ✅ Cliente com configuração para React Native
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON, {
+  auth: {
+    storage: undefined, // Desabilita storage para evitar problemas
+    autoRefreshToken: false,
+    persistSession: false,
+    detectSessionInUrl: false,
+  },
+});
+
 export default function HomeScreen() {
   const router = useRouter();
   const [showOffer, setShowOffer] = useState(true);
@@ -22,79 +34,56 @@ export default function HomeScreen() {
 
   async function fetchProducts() {
     try {
-      console.log("🔧 SUPABASE_URL:", SUPABASE_URL);
-      console.log("🔧 SUPABASE_ANON existe:", !!SUPABASE_ANON);
-      console.log("🔧 SUPABASE_ANON primeiros chars:", SUPABASE_ANON?.substring(0, 20) + "...");
+      console.log("🔧 Iniciando busca...");
+      console.log("🔧 URL:", SUPABASE_URL);
+      console.log("🔧 Chave existe:", !!SUPABASE_ANON);
       
       if (!SUPABASE_URL || !SUPABASE_ANON) {
-        const msg = "Variáveis de ambiente não configuradas. Verifique EXPO_PUBLIC_SUPABASE_URL e EXPO_PUBLIC_SUPABASE_ANON_KEY";
-        setErrorMsg(msg);
-        console.error("⚠️", msg);
-        return;
+        throw new Error("❌ Variáveis de ambiente não configuradas");
       }
 
-      const url = `${SUPABASE_URL}/rest/v1/products?select=id,name,price_cents,image_url,created_at&order=created_at.desc&limit=8`;
-      console.log("📡 Request URL:", url);
+      // Teste direto da URL
+      console.log("🧪 Testando URL direta...");
+      const testUrl = `${SUPABASE_URL}/rest/v1/products?select=count`;
+      const testResponse = await fetch(testUrl, {
+        headers: {
+          apikey: SUPABASE_ANON,
+          Authorization: `Bearer ${SUPABASE_ANON}`,
+        },
+      });
+      console.log("🧪 Teste URL status:", testResponse.status);
 
-      const headers = {
-        apikey: SUPABASE_ANON,
-        Authorization: `Bearer ${SUPABASE_ANON}`,
-        accept: "application/json",
-      };
-      console.log("📡 Headers configurados:", { ...headers, apikey: "***", Authorization: "Bearer ***" });
+      // Busca com SDK
+      console.log("📦 Buscando com SDK...");
+      const { data, error, status, statusText } = await supabase
+        .from("products")
+        .select("id, name, price_cents, image_url, created_at")
+        .order("created_at", { ascending: false })
+        .limit(8);
 
-      const res = await fetch(url, { headers });
+      console.log("📦 Status:", status, statusText);
+      console.log("📦 Error:", error);
+      console.log("📦 Data:", data);
 
-      console.log("🌐 Status:", res.status, res.statusText);
-      console.log("🌐 OK:", res.ok);
-      console.log("🌐 Headers:", Object.fromEntries(res.headers.entries()));
-
-      const bodyText = await res.text();
-      console.log("🧾 Body length:", bodyText.length);
-      console.log("🧾 Body preview:", bodyText.substring(0, 500));
-
-      if (!res.ok) {
-        let errorDetail = bodyText;
-        try {
-          const errorJson = JSON.parse(bodyText);
-          errorDetail = errorJson.message || errorJson.hint || bodyText;
-        } catch {}
-        
-        throw new Error(`HTTP ${res.status}: ${errorDetail}`);
+      if (error) {
+        console.error("❌ Erro detalhado:", JSON.stringify(error, null, 2));
+        throw new Error(error.message || error.details || "Erro ao buscar produtos");
       }
 
-      const data: Product[] = JSON.parse(bodyText);
-      console.log("✅ Produtos recebidos:", data.length);
-      if (data.length > 0) {
-        console.log("✅ Exemplo do primeiro produto:", JSON.stringify(data[0], null, 2));
-      }
-      
-      setHighlights(data ?? []);
+      console.log("✅ Sucesso! Produtos:", data?.length || 0);
+      setHighlights(data || []);
       setErrorMsg(null);
     } catch (e: any) {
-      console.error("❌ ERRO:", e.message);
+      console.error("❌ ERRO CAPTURADO:", e);
+      console.error("❌ Message:", e.message);
       console.error("❌ Stack:", e.stack);
-      setErrorMsg(e?.message ?? "Erro ao buscar produtos.");
+      setErrorMsg(e.message || "Erro desconhecido");
     } finally {
       setLoading(false);
     }
   }
 
   useEffect(() => {
-    // Teste de conectividade
-    (async () => {
-      try {
-        console.log("🔎 Testando conectividade...");
-        const ping = await fetch("https://httpbin.org/get", { 
-          method: "GET",
-          headers: { accept: "application/json" }
-        });
-        console.log("🔎 Ping httpbin status:", ping.status);
-      } catch (e: any) {
-        console.log("🔎 Ping httpbin falhou:", e.message);
-      }
-    })();
-
     fetchProducts();
   }, []);
 
@@ -176,15 +165,18 @@ export default function HomeScreen() {
         ) : errorMsg ? (
           <View style={{ paddingHorizontal: 20, marginTop: 10 }}>
             <Text style={{ textAlign: "center", color: "crimson", fontSize: 14, marginBottom: 8 }}>
-              ⚠️ Erro ao carregar produtos
+              ⚠️ Erro ao carregar
             </Text>
-            <Text style={{ textAlign: "center", color: "#666", fontSize: 12 }}>
+            <Text style={{ textAlign: "center", color: "#666", fontSize: 11, marginBottom: 12 }}>
               {errorMsg}
             </Text>
             <TouchableOpacity 
-              onPress={fetchProducts}
+              onPress={() => {
+                setLoading(true);
+                setErrorMsg(null);
+                fetchProducts();
+              }}
               style={{ 
-                marginTop: 12, 
                 backgroundColor: "#242760", 
                 padding: 12, 
                 borderRadius: 8,
