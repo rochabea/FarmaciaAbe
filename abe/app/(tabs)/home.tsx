@@ -70,10 +70,10 @@ export default function HomeScreen() {
   }, []);
 
   const categories = [
-    { name: "Medicamentos", icon: require("../../assets/images/medicamentos.png") },
-    { name: "Bem-estar",    icon: require("../../assets/images/maos.png") },
-    { name: "Maternidade",  icon: require("../../assets/images/bebe.png") },
-    { name: "Cosméticos",   icon: require("../../assets/images/cosmeticos.png") },
+    { name: "Medicamentos",              icon: require("../../assets/images/medicamentos.png"), href: "/medicamentos" },
+  { name: "Higiene",                   icon: require("../../assets/images/higiene.png"),      href: "/higiene" },
+  { name: "Vitaminas e Suplementos",   icon: require("../../assets/images/vitaminas.png"),    href: "/vitaminas" },
+  { name: "Beleza",                    icon: require("../../assets/images/cosmeticos.png"),   href: "/beleza" },
   ];
 
   return (
@@ -117,22 +117,16 @@ export default function HomeScreen() {
         {/* Categorias */}
         <Text style={styles.sectionTitle}>Categorias</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ paddingLeft: 20 }}>
-          {categories.map((cat) => {
-            const Card = (
-              <View key={cat.name} style={styles.categoryBox}>
+          {categories.map((cat) => (
+            <Link key={cat.name} href={cat.href} asChild>
+              <TouchableOpacity activeOpacity={0.8} style={styles.categoryBox}>
                 <Image source={cat.icon} style={styles.categoryIcon} resizeMode="contain" />
                 <Text style={styles.categoryText}>{cat.name}</Text>
-              </View>
-            );
-            return cat.name === "Medicamentos" ? (
-              <Link key={cat.name} href="/medicamentos" asChild>
-                <TouchableOpacity activeOpacity={0.8}>{Card}</TouchableOpacity>
-              </Link>
-            ) : (
-              Card
-            );
-          })}
+              </TouchableOpacity>
+            </Link>
+          ))}
         </ScrollView>
+
 
         {/* Destaques */}
         <Text style={styles.sectionTitle}>Destaques</Text>

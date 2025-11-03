@@ -1,44 +1,61 @@
-import React, { useState } from 'react';
-import { View, Text, Image, StyleSheet, TouchableOpacity, ScrollView, TextInput } from 'react-native';
-import { useRouter } from 'expo-router';
+// app/search/index.tsx (ou o caminho onde você mantém a tela de busca)
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  Image,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  TextInput,
+} from "react-native";
+import { useRouter } from "expo-router";
+
 export default function SearchScreen() {
-  const [searchText, setSearchText] = useState('');
+  const [searchText, setSearchText] = useState("");
   const router = useRouter();
 
   const categories = [
-    { name: 'Medicamentos', icon: require('../../assets/images/medicamentos.png') },
-    { name: 'Bem-estar', icon: require('../../assets/images/maos.png') },
-    { name: 'Maternidade', icon: require('../../assets/images/bebe.png') },
-    { name: 'Cosméticos', icon: require('../../assets/images/cosmeticos.png') },
-    { name: 'Manipulados', icon: require('../../assets/images/vitamina.png') },
-    { name: 'Higiene', icon: require('../../assets/images/higiene.png') },
-    { name: 'Cabelos', icon: require('../../assets/images/cabelos.png') },
-    { name: 'Cuidados com a pele', icon: require('../../assets/images/pele.png') },
+    { name: "Medicamentos",          icon: require("../../assets/images/medicamentos.png"), href: "/medicamentos" },
+    { name: "Bem-estar",             icon: require("../../assets/images/maos.png"),         href: "/bemestar" },
+    { name: "Maternidade",           icon: require("../../assets/images/bebe.png"),         href: "/maternidade" },
+    { name: "Cosméticos",            icon: require("../../assets/images/cosmeticos.png"),   href: "/beleza" },
+    { name: "Manipulados",           icon: require("../../assets/images/vitamina.png"),     href: "/manipulados/envio_manipulados" },
+    { name: "Higiene",               icon: require("../../assets/images/higiene.png"),      href: "/higiene" },
+    { name: "Cabelos",               icon: require("../../assets/images/cabelos.png"),      href: "/cabelos" },
+    { name: "Vitaminas",   icon: require("../../assets/images/vitaminas.png"),    href: "/vitaminas" },
   ];
 
   return (
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity>
-          <Image source={require('../../assets/images/car.png')} style={styles.icon} />
+        <TouchableOpacity onPress={() => router.push("/cesta")}>
+          <Image source={require("../../assets/images/car.png")} style={styles.icon} />
         </TouchableOpacity>
 
-        <Image source={require('../../assets/images/logo.png')} style={styles.logo} resizeMode="contain" />
+        <Image
+          source={require("../../assets/images/logo.png")}
+          style={styles.logo}
+          resizeMode="contain"
+        />
 
         <TouchableOpacity onPress={() => router.push("/notificacao")}>
-          <Image source={require('../../assets/images/notificacao.png')} style={styles.icon} />
+          <Image source={require("../../assets/images/notificacao.png")} style={styles.icon} />
         </TouchableOpacity>
       </View>
 
       {/* Campo de pesquisa */}
       <View style={styles.searchBox}>
-        <Image source={require('../../assets/images/lupa.png')} style={styles.searchIcon} />
+        <Image source={require("../../assets/images/lupa.png")} style={styles.searchIcon} />
         <TextInput
           style={styles.searchInput}
           placeholder="Pesquisar produtos ou categorias"
           value={searchText}
           onChangeText={setSearchText}
+          returnKeyType="search"
+          onSubmitEditing={() => {
+          }}
         />
       </View>
 
@@ -46,10 +63,17 @@ export default function SearchScreen() {
         {/* Título */}
         <Text style={styles.sectionTitle}>Categorias</Text>
 
-        {/* Grid de categorias */}
+        {/* Grid de categorias (cada card abre uma rota específica) */}
         <View style={styles.categoriesGrid}>
           {categories.map((cat, index) => (
-            <TouchableOpacity key={index} style={styles.categoryBox}>
+            <TouchableOpacity
+              key={index}
+              style={styles.categoryBox}
+              activeOpacity={0.85}
+              onPress={() => router.push(cat.href)}
+              accessibilityRole="button"
+              accessibilityLabel={`Abrir categoria ${cat.name}`}
+            >
               <Image source={cat.icon} style={styles.categoryIcon} resizeMode="contain" />
               <Text style={styles.categoryText}>{cat.name}</Text>
             </TouchableOpacity>
@@ -61,33 +85,23 @@ export default function SearchScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { 
-    flex: 1, 
-    backgroundColor: '#fff', 
-    paddingTop: 60 
+  container: { flex: 1, backgroundColor: "#fff", paddingTop: 60 },
+
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 20,
   },
 
-  header: { 
-    flexDirection: 'row', 
-    justifyContent: 'space-between', 
-    alignItems: 'center', 
-    paddingHorizontal: 20 
-  },
+  icon: { width: 30, height: 30 },
 
-  icon: { 
-    width: 30, 
-    height: 30 
-  },
-
-  logo: { 
-    width: 100, 
-    height: 40 
-  },
+  logo: { width: 100, height: 40 },
 
   searchBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F4F4F7',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#F4F4F7",
     borderRadius: 12,
     marginHorizontal: 20,
     marginTop: 20,
@@ -95,54 +109,42 @@ const styles = StyleSheet.create({
     height: 45,
   },
 
-  searchIcon: {
-    width: 20,
-    height: 20,
-    marginRight: 8,
-  },
+  searchIcon: { width: 20, height: 20, marginRight: 8 },
 
-  searchInput: {
-    flex: 1,
-    fontSize: 16,
-    color: '#000',
-  },
+  searchInput: { flex: 1, fontSize: 16, color: "#000" },
 
-  sectionTitle: { 
-    fontSize: 18, 
-    fontWeight: '700', 
-    color: '#242760', 
-    marginTop: 20, 
-    marginBottom: 10, 
-    paddingLeft: 20 
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#242760",
+    marginTop: 20,
+    marginBottom: 10,
+    paddingLeft: 20,
   },
 
   categoriesGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
     paddingHorizontal: 20,
   },
 
-  categoryBox: { 
-    width: '48%',
+  categoryBox: {
+    width: "48%",
     height: 120,
     borderRadius: 12,
-    justifyContent: 'center', 
-    alignItems: 'center', 
-    marginBottom: 15, 
-    backgroundColor: '#F4F4F7' 
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 15,
+    backgroundColor: "#F4F4F7",
   },
 
-  categoryIcon: { 
-    width: 50, 
-    height: 50, 
-    marginBottom: 10 
-  },
+  categoryIcon: { width: 50, height: 50, marginBottom: 10 },
 
-  categoryText: { 
-    fontSize: 14, 
-    fontWeight: '600', 
-    color: '#000000ff', 
-    textAlign: 'center' 
+  categoryText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#000000ff",
+    textAlign: "center",
   },
 });
