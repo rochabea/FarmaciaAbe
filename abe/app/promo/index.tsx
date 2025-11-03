@@ -1,235 +1,196 @@
-// app/promo/index.tsx (ou onde está sua tela de promoções)
-import React, { memo, useState } from "react";
+// app/promo/index.tsx
+import React, { memo, useCallback, useState } from "react";
 import {
   View,
   Text,
   Image,
   StyleSheet,
   TouchableOpacity,
-  FlatList,
-  Modal,
+  ScrollView,
 } from "react-native";
 import { useRouter } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
-import CustomTabBar, { TAB_BAR_HEIGHT } from "../../components/CustomTabBar";
+import { useCart } from "../context/CartContext"; // <-- ajuste se necessário
 
 type Product = { id: string; name: string; price: number; image: any };
 
 const DATA: Product[] = [
-  { id: "1", name: "Aspirina", price: 10.99, image: require("../../assets/images/remedio.png") },
+  { id: "1", name: "Aspirina",    price: 10.99, image: require("../../assets/images/remedio.png") },
   { id: "2", name: "Paracetamol", price: 10.99, image: require("../../assets/images/remedio.png") },
-  { id: "3", name: "Ibuprofeno", price: 10.99, image: require("../../assets/images/remedio.png") },
-  { id: "4", name: "Vitamina C", price: 10.99, image: require("../../assets/images/remedio.png") },
-  { id: "5", name: "Aspirina", price: 10.99, image: require("../../assets/images/remedio.png") },
+  { id: "3", name: "Ibuprofeno",  price: 10.99, image: require("../../assets/images/remedio.png") },
+  { id: "4", name: "Vitamina C",  price: 10.99, image: require("../../assets/images/remedio.png") },
+  { id: "5", name: "Aspirina",    price: 10.99, image: require("../../assets/images/remedio.png") },
   { id: "6", name: "Paracetamol", price: 10.99, image: require("../../assets/images/remedio.png") },
-  { id: "7", name: "Ibuprofeno", price: 10.99, image: require("../../assets/images/remedio.png") },
-  { id: "8", name: "Vitamina C", price: 10.99, image: require("../../assets/images/remedio.png") },
+  { id: "7", name: "Ibuprofeno",  price: 10.99, image: require("../../assets/images/remedio.png") },
+  { id: "8", name: "Vitamina C",  price: 10.99, image: require("../../assets/images/remedio.png") },
 ];
 
 const NAVY = "#242760";
-const GAP = 16;
-const COLS = 2;
 
 export default function Promocoes() {
   const router = useRouter();
-  const [notifVisible, setNotifVisible] = useState(false);
+  const { addItem } = useCart();
+  const [itens] = useState(DATA); 
 
-  
-  const goHome = () => router.back();
+  const handleBuy = useCallback(
+    (p: Product) => {
+      addItem({
+        id: p.id,
+        name: p.name,
+        price: p.price,
+        image: p.image,
+        qty: 1,
+      });
+      router.push("/cesta");
+    },
+    [addItem, router]
+  );
 
   return (
-    <View style={styles.container}>
-      {/* HEADER com recorte e badge */}
-      <View style={styles.header}>
-        <View style={styles.headerRow}>
-          <TouchableOpacity
-            onPress={goHome}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            style={{ zIndex: 5 }}                 // ↑ garante clique acima de overlays
-          >
-            <Ionicons name="chevron-back" size={24} color="#fff" />
-          </TouchableOpacity>
+    <ScrollView contentContainerStyle={styles.container}>
+      {/* ===== Header */}
+      <View style={styles.topRect}>
+        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+          <Image
+            source={require("../../assets/images/seta-esquerda.png")}
+            style={styles.backIcon}
+          />
+        </TouchableOpacity>
 
-          <Text style={styles.headerTitle}>Promoções</Text>
+        {/* título do header desta tela */}
+        <Text style={styles.topTitle}>Promoções</Text>
 
-          <TouchableOpacity
-            onPress={() => setNotifVisible(true)}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            style={{ zIndex: 5 }}                 // ↑ idem
-          >
-            <Ionicons name="notifications-outline" size={22} color="#fff" />
-          </TouchableOpacity>
-        </View>
+        <TouchableOpacity
+          style={styles.notification}
+          onPress={() => router.push("/notificacao")}
+        >
+          <Image
+            source={require("../../assets/images/notificacaoB.png")}
+            style={styles.notificationIcon}
+          />
+        </TouchableOpacity>
 
-        {/* recorte branco + badge central (não interceptam toques) */}
-        <View style={styles.cutout} pointerEvents="none" />
-        <View style={styles.badge} pointerEvents="none">
-          <View style={styles.badgeSquare}>
-            <Image
-              source={require("../../assets/images/megafone.png")}
-              style={styles.badgeIcon}
-              resizeMode="contain"
-            />
-          </View>
+        <View style={styles.iconCircle}>
+          <Image
+            source={require("../../assets/images/megafone.png")}
+            style={styles.sacolaIcon}
+          />
         </View>
       </View>
 
-      {/* CONTEÚDO com espaço para a tab bar */}
-      <View style={styles.content}>
-        <View pointerEvents="none" style={styles.verticalDivider} />
-        <FlatList
-          data={DATA}
-          keyExtractor={(i) => i.id}
-          numColumns={COLS}
-          columnWrapperStyle={{ gap: GAP }}
-          contentContainerStyle={{
-            paddingHorizontal: 16,
-            paddingTop: 8,
-            paddingBottom: TAB_BAR_HEIGHT + 16,
-          }}
-          showsVerticalScrollIndicator={false}
-          renderItem={({ item }) => <ProductCard item={item} />}
-        />
+      {/* espaçador para o círculo sobrepor corretamente */}
+      <View style={{ height: 80 }} />
+
+      {/* ===== Grid simples de itens (2 colunas) ===== */}
+      <View style={styles.grid}>
+        {itens.map((item) => (
+          <ProductCard key={item.id} item={item} onBuy={() => handleBuy(item)} />
+        ))}
       </View>
 
-      {/* Tab bar fixa no rodapé */}
-      <View style={{ position: "absolute", bottom: 0, left: 0, right: 0 }}>
-        <CustomTabBar />
-      </View>
-
-      {/* Modal simples de notificações */}
-      <Modal
-        visible={notifVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setNotifVisible(false)}
-      >
-        <View style={styles.modalBackdrop}>
-          <View style={styles.modalCard}>
-            <Text style={{ fontSize: 16, fontWeight: "700", color: NAVY, marginBottom: 8 }}>
-              Notificações
-            </Text>
-            <Text style={{ color: "#333", marginBottom: 12 }}>
-              Você não possui novas notificações.
-            </Text>
-            <TouchableOpacity style={styles.modalBtn} onPress={() => setNotifVisible(false)}>
-              <Text style={{ color: "#fff", fontWeight: "700" }}>Fechar</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
-    </View>
+      {/* respiro inferior */}
+      <View style={{ height: 40 }} />
+    </ScrollView>
   );
 }
 
-const ProductCard = memo(({ item }: { id?: string; item: Product }) => (
-  <View style={styles.card}>
-    <View style={styles.imageWrap}>
-      <Image source={item.image} style={styles.cardImg} resizeMode="contain" />
-    </View>
+const ProductCard = memo(function ProductCard({
+  item,
+  onBuy,
+}: {
+  item: Product;
+  onBuy: () => void;
+}) {
+  return (
+    <View style={styles.card}>
+      <View style={styles.imageWrap}>
+        <Image source={item.image} style={styles.cardImg} resizeMode="contain" />
+      </View>
 
-    <View style={{ width: "100%" }}>
       <Text numberOfLines={1} style={styles.cardTitle}>
         {item.name}
       </Text>
       <Text style={styles.cardSub}>De R$ 10,99 por</Text>
-      <Text style={styles.cardPrice}>9,99</Text>
+      <Text style={styles.cardPrice}>{item.price.toFixed(2).replace(".", ",")}</Text>
+
+      <TouchableOpacity style={styles.buyBtn} activeOpacity={0.9} onPress={onBuy}>
+        <Text style={styles.buyTxt}>Comprar</Text>
+      </TouchableOpacity>
     </View>
+  );
+});
 
-    <TouchableOpacity activeOpacity={0.9} style={styles.buyBtn}>
-      <Text style={styles.buyTxt}>Comprar</Text>
-    </TouchableOpacity>
-  </View>
-));
-
+/* =================== estilos =================== */
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff", paddingTop: 40 },
-
-  // HEADER
-  header: {
-    backgroundColor: NAVY,
-    paddingTop: 12,
-    paddingBottom: 72,
-    borderBottomLeftRadius: 32,
-    borderBottomRightRadius: 32,
-    overflow: "visible",
-  },
-  headerRow: {
-    paddingHorizontal: 16,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    zIndex: 4, // ↑ acima dos elementos absolutos
-  },
-  headerTitle: {
-    color: "#fff",
-    fontSize: 22,
-    fontWeight: "700",
-    position: "absolute",
-    left: 0,
-    right: 0,
-    textAlign: "center",
-    zIndex: 3,
-  },
-
-  // recorte branco (semicírculo)
-  cutout: {
-    position: "absolute",
-    bottom: -35,
-    alignSelf: "center",
-    width: 150,
-    height: 70,
+  container: {
+    flexGrow: 1,
     backgroundColor: "#fff",
+    alignItems: "center",
+    paddingBottom: 40,
+  },
+
+  // HEADER 
+  topRect: {
+    width: "100%",
+    height: 250,
+    backgroundColor: "#242760",
     borderBottomLeftRadius: 80,
     borderBottomRightRadius: 80,
-    zIndex: 1,
+    alignItems: "center",
+    justifyContent: "flex-start",
+    position: "relative",
   },
-
-  // badge
-  badge: {
+  topTitle: {
+    color: "#fff",
+    fontSize: 28,
+    fontWeight: "700",
+    marginTop: 90,
+  },
+  backButton: {
     position: "absolute",
-    bottom: -28,
-    alignSelf: "center",
-    width: 72,
-    height: 72,
-    borderRadius: 36,
+    left: 20,
+    top: 98,
+  },
+  backIcon: {
+    width: 25,
+    height: 25,
+  },
+  notification: {
+    position: "absolute",
+    right: 20,
+    top: 92,
+  },
+  notificationIcon: {
+    width: 25,
+    height: 25,
+  },
+  iconCircle: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
     backgroundColor: "#fff",
     alignItems: "center",
     justifyContent: "center",
-    elevation: 6,
-    shadowColor: "#000",
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 2 },
-    borderWidth: 2,
-    borderColor: "#E9ECF5",
-    zIndex: 2,
-  },
-  badgeSquare: {
-    width: 50,
-    height: 50,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: NAVY,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  badgeIcon: { width: 28, height: 28 },
-
-  // CONTEÚDO
-  content: { flex: 1, paddingTop: 40 },
-  verticalDivider: {
     position: "absolute",
-    top: 0,
-    bottom: 0,
-    left: "50%",
-    width: 1,
-    backgroundColor: "#EDEFF5",
+    bottom: -60,
+    borderWidth: 3,
+    borderColor: "#fff",
+  },
+  sacolaIcon: {
+    width: 70,
+    height: 70,
+  },
+
+  // GRID (2 colunas) — simples via flex-wrap
+  grid: {
+    width: "90%",
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
   },
 
   // CARD
   card: {
-    flex: 1,
+    width: "48%",
     backgroundColor: "#fff",
     borderRadius: 14,
     paddingHorizontal: 12,
@@ -256,12 +217,7 @@ const styles = StyleSheet.create({
   },
   cardImg: { width: 96, height: 96, resizeMode: "contain" },
 
-  cardTitle: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: NAVY,
-    textDecorationLine: "underline",
-  },
+  cardTitle: { fontSize: 14, fontWeight: "600", color: NAVY, textDecorationLine: "underline" },
   cardSub: { fontSize: 12, color: "#6B6B6B", marginTop: 6 },
   cardPrice: { fontSize: 14, color: NAVY, fontWeight: "700" },
 
@@ -274,26 +230,6 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   buyTxt: { color: "#fff", fontWeight: "600", fontSize: 14 },
-
-  // modal
-  modalBackdrop: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.3)",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  modalCard: {
-    width: "80%",
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    padding: 16,
-    elevation: 6,
-  },
-  modalBtn: {
-    marginTop: 8,
-    backgroundColor: NAVY,
-    borderRadius: 10,
-    paddingVertical: 10,
-    alignItems: "center",
-  },
 });
+
+export {};
