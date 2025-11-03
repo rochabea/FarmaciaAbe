@@ -4,3 +4,7 @@ export const EnderecosParams = {
     { id: 2, logradouro: 'Quadra xxxxx', numero: '456', cep: '11111-11', cidade: 'Cidade', estado: 'Estado', bairro: 'Bairro' },
   ],
 };
+
+export default function EnderecosScreen() {
+  return null;
+}

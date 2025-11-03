@@ -79,7 +79,6 @@ export default function TabLayout() {
 
       {/* Telas fora da tab bar */}
       <Tabs.Screen name="produto/tela_produto" options={{ href: null }} />
-      <Tabs.Screen name="avaliacao" options={{ href: null }} />
     </Tabs>
   );
 }

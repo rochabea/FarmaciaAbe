@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, Image, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator } from "react-native";
 import { Link, useRouter } from "expo-router";
-import { createClient } from "@supabase/supabase-js";
-import "react-native-url-polyfill/auto";
+import { supabase } from "../../lib/supabase";
+import Constants from "expo-constants";
 
 type Product = {
   id: string;
@@ -12,18 +12,11 @@ type Product = {
   created_at?: string | null;
 };
 
-const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL!;
-const SUPABASE_ANON = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY!;
+const extras = (Constants.expoConfig?.extra ?? {}) as { EXPO_PUBLIC_SUPABASE_URL?: string; EXPO_PUBLIC_SUPABASE_ANON_KEY?: string };
+const SUPABASE_URL = extras.EXPO_PUBLIC_SUPABASE_URL ?? '';
+const SUPABASE_ANON = extras.EXPO_PUBLIC_SUPABASE_ANON_KEY ?? '';
 
-// ✅ Cliente com configuração para React Native
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON, {
-  auth: {
-    storage: undefined, // Desabilita storage para evitar problemas
-    autoRefreshToken: false,
-    persistSession: false,
-    detectSessionInUrl: false,
-  },
-});
+// Supabase client centralizado em ../../lib/supabase
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -41,17 +34,6 @@ export default function HomeScreen() {
       if (!SUPABASE_URL || !SUPABASE_ANON) {
         throw new Error("❌ Variáveis de ambiente não configuradas");
       }
-
-      // Teste direto da URL
-      console.log("🧪 Testando URL direta...");
-      const testUrl = `${SUPABASE_URL}/rest/v1/products?select=count`;
-      const testResponse = await fetch(testUrl, {
-        headers: {
-          apikey: SUPABASE_ANON,
-          Authorization: `Bearer ${SUPABASE_ANON}`,
-        },
-      });
-      console.log("🧪 Teste URL status:", testResponse.status);
 
       // Busca com SDK
       console.log("📦 Buscando com SDK...");

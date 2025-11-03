@@ -1,5 +1,5 @@
 // app/medicamentos.tsx
-import React, { memo, useState } from 'react';
+import React, { memo, useEffect, useState } from 'react';
 import {
   View, Text, Image, StyleSheet, TouchableOpacity,
   FlatList, Modal
@@ -7,20 +7,10 @@ import {
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import CustomTabBar, { TAB_BAR_HEIGHT } from '../components/CustomTabBar';
+import { supabase } from '../lib/supabase';
 
 
-type Product = { id: string; name: string; price: number; image: any };
-
-const DATA: Product[] = [
-  { id: '1', name: 'Aspirina',    price: 10.99, image: require('../assets/images/remedio.png') },
-  { id: '2', name: 'Paracetamol', price: 10.99, image: require('../assets/images/remedio.png') },
-  { id: '3', name: 'Ibuprofeno',  price: 10.99, image: require('../assets/images/remedio.png') },
-  { id: '4', name: 'Vitamina C',  price: 10.99, image: require('../assets/images/remedio.png') },
-  { id: '5', name: 'Aspirina',    price: 10.99, image: require('../assets/images/remedio.png') },
-  { id: '6', name: 'Paracetamol', price: 10.99, image: require('../assets/images/remedio.png') },
-  { id: '7', name: 'Ibuprofeno',  price: 10.99, image: require('../assets/images/remedio.png') },
-  { id: '8', name: 'Vitamina C',  price: 10.99, image: require('../assets/images/remedio.png') },
-];
+type Product = { id: string; name: string; price_cents: number; image_url?: string | null };
 
 const NAVY = '#242760';
 const GAP = 16;
@@ -29,8 +19,35 @@ const COLS = 2;
 export default function Medicamentos() {
   const router = useRouter();
   const [notifVisible, setNotifVisible] = useState(false);
+  const [items, setItems] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const goHome = () => router.replace('/(tabs)/home');
+
+  useEffect(() => {
+    (async () => {
+      try {
+        setLoading(true);
+        setErrorMsg(null);
+        const { data, error, status } = await supabase
+          .from('products')
+          .select('id, name, price_cents, image_url, categories!inner(name)')
+          .eq('categories.name', 'Analgésicos')
+          .order('created_at', { ascending: false })
+          .limit(50);
+        console.log('📄 Medicamentos status:', status, 'error:', error);
+        if (error) throw new Error(error.message);
+        const rows = data ?? [];
+        const unique = Array.from(new Map(rows.map((r: any) => [r.id, r])).values());
+        setItems(unique);
+      } catch (e: any) {
+        setErrorMsg(e.message || 'Falha ao carregar produtos');
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, []);
 
   return (
     <View style={styles.container}>
@@ -61,15 +78,27 @@ export default function Medicamentos() {
       {/* CONTEÚDO com espaço para a tab bar */}
       <View style={styles.content}>
         <View pointerEvents="none" style={styles.verticalDivider} />
-        <FlatList
-          data={DATA}
-          keyExtractor={(i) => i.id}
-          numColumns={COLS}
-          columnWrapperStyle={{ gap: GAP }}
-          contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: TAB_BAR_HEIGHT + 16 }}
-          showsVerticalScrollIndicator={false}
-          renderItem={({ item }) => <ProductCard item={item} />}
-        />
+        {loading ? (
+          <View style={{ paddingTop: 24, alignItems: 'center' }}>
+            <Ionicons name="refresh" size={22} color={NAVY} />
+            <Text style={{ color: '#666', marginTop: 8 }}>Carregando...</Text>
+          </View>
+        ) : errorMsg ? (
+          <View style={{ padding: 16 }}>
+            <Text style={{ color: 'crimson', textAlign: 'center', marginBottom: 8 }}>Erro: {errorMsg}</Text>
+            <Text style={{ color: '#666', textAlign: 'center' }}>Verifique a conexão e tente novamente.</Text>
+          </View>
+        ) : (
+          <FlatList
+            data={items}
+            keyExtractor={(i) => i.id}
+            numColumns={COLS}
+            columnWrapperStyle={{ gap: GAP }}
+            contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: TAB_BAR_HEIGHT + 16 }}
+            showsVerticalScrollIndicator={false}
+            renderItem={({ item }) => <ProductCard item={item} />}
+          />
+        )}
       </View>
 
       {/* Tab bar fixa no rodapé */}
@@ -105,13 +134,17 @@ export default function Medicamentos() {
 const ProductCard = memo(({ item }: { item: Product }) => (
   <View style={styles.card}>
     <View style={styles.imageWrap}>
-      <Image source={item.image} style={styles.cardImg} />
+      {item.image_url ? (
+        <Image source={{ uri: item.image_url }} style={styles.cardImg} />
+      ) : (
+        <Image source={require('../assets/images/remedio.png')} style={styles.cardImg} />
+      )}
     </View>
 
     <View style={{ width: '100%' }}>
       <Text numberOfLines={1} style={styles.cardTitle}>{item.name}</Text>
       <Text style={styles.cardSub}>
-        Oferta por <Text style={styles.cardPrice}>R$ {item.price.toFixed(2)}</Text>
+        Oferta por <Text style={styles.cardPrice}>R$ {(item.price_cents / 100).toFixed(2).replace('.', ',')}</Text>
       </Text>
     </View>
 
