@@ -1,3 +1,4 @@
+// app/manipulados/status_manipulados.tsx (ajuste o caminho conforme seu projeto)
 import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -19,24 +20,37 @@ export default function StatusPedidoScreen() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }} edges={["top", "left", "right"]}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.headerBtn} onPress={() => router.back()}>
-          <Ionicons name="chevron-back" size={22} color="#fff" />
+      {/* ===== HEADER estilo do modelo ===== */}
+      <View style={styles.topo}>
+        <TouchableOpacity
+          style={styles.botaoVoltar}
+          onPress={() => router.back()}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        >
+          <Ionicons name="chevron-back" size={28} color="#fff" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Status do pedido</Text>
-        <TouchableOpacity style={styles.headerBtn} onPress={() => {}}>
-          <Ionicons name="notifications-outline" size={22} color="#fff" />
-        </TouchableOpacity>
-      </View>
 
-      {/* Hero com documento + check */}
-      <View style={styles.hero}>
-        <Ionicons name="document-text-outline" size={44} color={NAVY} />
-        <View style={styles.checkWrap}>
-          <Ionicons name="checkmark-circle" size={28} color={GREEN} />
+        <TouchableOpacity
+          style={styles.botaoNotificacao}
+          onPress={() => {}}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        >
+          <Ionicons name="notifications-outline" size={24} color="#fff" />
+        </TouchableOpacity>
+
+        <Text style={styles.tituloTopo}>Status do pedido</Text>
+
+        {/* Círculo branco sobreposto com ícone */}
+        <View style={styles.circuloIcone} pointerEvents="none">
+          <Ionicons name="document-text-outline" size={44} color={NAVY} />
+          <View style={styles.checkWrap}>
+            <Ionicons name="checkmark-circle" size={28} color={GREEN} />
+          </View>
         </View>
       </View>
+
+      {/* Espaço para não colidir com o círculo */}
+      <View style={{ height: 80 }} />
 
       {/* Card com passos */}
       <View style={styles.card}>
@@ -68,38 +82,38 @@ export default function StatusPedidoScreen() {
 }
 
 const styles = StyleSheet.create({
-  header: {
+  /* ===== Header do modelo ===== */
+  topo: {
+    width: "100%",
+    height: 200,
     backgroundColor: NAVY,
-    paddingHorizontal: 16,
-    paddingTop: 6,
-    paddingBottom: 18,
-    flexDirection: "row",
+    borderBottomLeftRadius: 80,
+    borderBottomRightRadius: 80,
     alignItems: "center",
-    justifyContent: "space-between",
-    borderBottomLeftRadius: 16,
-    borderBottomRightRadius: 16,
+    justifyContent: "flex-start",
+    position: "relative",
+    paddingTop: 40,
   },
-  headerBtn: {
-    width: 36, height: 36, borderRadius: 18,
-    alignItems: "center", justifyContent: "center",
-    backgroundColor: "rgba(255,255,255,0.15)",
+  tituloTopo: {
+    color: "#fff",
+    fontSize: 28,
+    fontWeight: "700",
+    marginTop: 30,
   },
-  headerTitle: { color: "#fff", fontSize: 22, fontWeight: "700" },
+  botaoVoltar: { position: "absolute", left: 20, top: 70 },
+  botaoNotificacao: { position: "absolute", right: 20, top: 70 },
 
-  hero: {
-    marginTop: -18,
-    alignSelf: "center",
+  circuloIcone: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
     backgroundColor: "#fff",
-    width: 96,
-    height: 96,
-    borderRadius: 48,
     alignItems: "center",
     justifyContent: "center",
-    elevation: 3,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 4 },
+    position: "absolute",
+    bottom: -60,
+    borderWidth: 3,
+    borderColor: "#fff",
   },
   checkWrap: {
     position: "absolute",
@@ -109,6 +123,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
   },
 
+  /* ===== Conteúdo ===== */
   card: {
     marginTop: 20,
     marginHorizontal: 16,

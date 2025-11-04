@@ -41,7 +41,7 @@ export default function Medicamentos() {
           .select(
             "id, name, price_cents, image_url, categories!inner(name), created_at"
           )
-          .eq("categories.name", "Beleza e Cosméticos")
+          .eq("categories.name", "Bem-estar")
           .order("created_at", { ascending: false })
           .limit(50);
 

@@ -1,4 +1,3 @@
-// app/politica.tsx (ajuste o caminho se usar outra pasta)
 import React, { useState } from "react";
 import {
   View,
@@ -29,7 +28,7 @@ export default function Politica() {
 
   return (
     <View style={estilos.container}>
-      {/* HEADER igual ao modelo */}
+      {/* HEADER */}
       <View style={estilos.topo}>
         <TouchableOpacity style={estilos.botaoVoltar} onPress={() => router.back()}>
           <Image
@@ -117,7 +116,7 @@ export default function Politica() {
 const estilos = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#fff" },
 
-  // ===== HEADER (igual ao modelo) =====
+  // ===== HEADER  =====
   topo: {
     width: "100%",
     height: 200,

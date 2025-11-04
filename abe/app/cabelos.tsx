@@ -41,7 +41,7 @@ export default function Medicamentos() {
           .select(
             "id, name, price_cents, image_url, categories!inner(name), created_at"
           )
-          .eq("categories.name", "Beleza e Cosméticos")
+          .eq("categories.name", "Cabelos")
           .order("created_at", { ascending: false })
           .limit(50);
 
@@ -85,7 +85,7 @@ export default function Medicamentos() {
           />
         </TouchableOpacity>
 
-        <Text style={styles.topTitle}>Beleza e Cosméticos</Text>
+        <Text style={styles.topTitle}>Itens de Cabelo</Text>
 
         <TouchableOpacity
           style={styles.notification}
@@ -99,7 +99,7 @@ export default function Medicamentos() {
 
         <View style={styles.iconCircle}>
           <Image
-            source={require("../assets/images/cosmeticos.png")}
+            source={require("../assets/images/cabelos.png")}
             style={styles.sacolaIcon}
           />
         </View>

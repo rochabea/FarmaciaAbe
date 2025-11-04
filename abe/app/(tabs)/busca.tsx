@@ -16,14 +16,14 @@ export default function SearchScreen() {
   const router = useRouter();
 
   const categories = [
-    { name: "Analgésicos",          icon: require("../../assets/images/medicamentos.png"), href: "/medicamentos" },
+    { name: "Analgésicos",          icon: require("../../assets/images/medicamentos.png"),  href: "/medicamentos" },
     { name: "Bem-estar",             icon: require("../../assets/images/maos.png"),         href: "/bemestar" },
     { name: "Maternidade",           icon: require("../../assets/images/bebe.png"),         href: "/maternidade" },
     { name: "Cosméticos",            icon: require("../../assets/images/cosmeticos.png"),   href: "/beleza" },
     { name: "Manipulados",           icon: require("../../assets/images/vitamina.png"),     href: "/manipulados/envio_manipulados" },
     { name: "Higiene",               icon: require("../../assets/images/higiene.png"),      href: "/higiene" },
     { name: "Cabelos",               icon: require("../../assets/images/cabelos.png"),      href: "/cabelos" },
-    { name: "Vitaminas",   icon: require("../../assets/images/vitaminas.png"),    href: "/vitaminas" },
+    { name: "Vitaminas",             icon: require("../../assets/images/vitaminas.png"),    href: "/vitaminas" },
   ];
 
   return (

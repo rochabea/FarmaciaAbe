@@ -1,5 +1,14 @@
+// app/manipulados/envio_manipulados.tsx (ajuste o caminho se for outro)
 import React, { useState } from "react";
-import {View,Text, StyleSheet,TouchableOpacity,Alert,Platform,} from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Alert,
+  Platform,
+  Image,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -24,10 +33,7 @@ export default function EnvioManipulados() {
       if (res.canceled) return;
       setFile(res.assets[0]);
     } catch (e: any) {
-      Alert.alert(
-        "Selecionar arquivo",
-        "Não foi possível abrir o seletor de documentos."
-      );
+      Alert.alert("Selecionar arquivo", "Não foi possível abrir o seletor de documentos.");
     }
   };
 
@@ -37,39 +43,46 @@ export default function EnvioManipulados() {
   };
 
   return (
-    <SafeAreaView style={styles.safe} edges={["top", "left", "right"]}>
-      {/* Header */}
-      <View style={styles.header}>
+    <SafeAreaView style={estilos.safe} edges={["top", "left", "right"]}>
+      {/* HEADER no padrão do modelo */}
+      <View style={estilos.topo}>
         <TouchableOpacity
-          style={styles.headerBtn}
-          onPress={() => (router.canGoBack() ? router.back() : router.push("/(tabs)/conta"))}
+          style={estilos.botaoVoltar}
+          onPress={() => (router.canGoBack() ? router.back() : router.replace("/(tabs)/home"))}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
         >
-          <Ionicons name="chevron-back" size={22} color="#fff" />
+          <Image source={require("../../assets/images/seta-esquerda.png")} style={estilos.iconeVoltar} />
         </TouchableOpacity>
 
-        <Text style={styles.headerTitle}>Manipulação</Text>
-
-        <TouchableOpacity style={styles.headerBtn} onPress={() => Alert.alert("Notificações")}>
-          <Ionicons name="notifications-outline" size={22} color="#fff" />
+        <TouchableOpacity
+          style={estilos.botaoNotificacao}
+          onPress={() => router.push("/notificacao")}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        >
+          <Image source={require("../../assets/images/notificacao.png")} style={estilos.iconeNotificacao} />
         </TouchableOpacity>
+
+        <Text style={estilos.tituloTopo}>Manipulação</Text>
+
+        {/* Círculo branco sobreposto com ícone */}
+        <View style={estilos.circuloIcone} pointerEvents="none">
+          <Ionicons name="medkit-outline" size={42} color={NAVY} />
+        </View>
       </View>
 
-      {/* Hero redondo */}
-      <View style={styles.hero}>
-        <Ionicons name="medkit-outline" size={42} color={NAVY} />
-      </View>
+      {/* Espaço para não colidir com o círculo */}
+      <View style={{ height: 80 }} />
 
       {/* Instruções */}
-      <Text style={styles.hint}>
-        Envie a receita deve estar em uma{"\n"}superfície plana com informações nítidas e{"\n"}
-        sem outros itens por cima.
+      <Text style={estilos.hint}>
+        Envie a receita deve estar em uma{"\n"}superfície plana com informações nítidas e{"\n"}sem outros itens por cima.
       </Text>
 
       {/* Linha de anexo */}
-      <TouchableOpacity style={styles.attachment} activeOpacity={0.8} onPress={pickPdf}>
-        <View style={styles.attachmentLeft}>
+      <TouchableOpacity style={estilos.attachment} activeOpacity={0.8} onPress={pickPdf}>
+        <View style={estilos.attachmentLeft}>
           <Ionicons name="document-text-outline" size={20} color={MUTED} />
-          <Text style={styles.attachmentText}>{file?.name ?? "Anexo em PDF"}</Text>
+          <Text style={estilos.attachmentText}>{file?.name ?? "Anexo em PDF"}</Text>
         </View>
         <Ionicons
           name={Platform.OS === "ios" ? "chevron-forward" : "chevron-forward-outline"}
@@ -80,62 +93,57 @@ export default function EnvioManipulados() {
 
       {/* Botão enviar */}
       <TouchableOpacity
-        style={[styles.primaryBtn, !file && { opacity: 0.5 }]}
+        style={[estilos.primaryBtn, !file && { opacity: 0.5 }]}
         activeOpacity={0.9}
         onPress={enviar}
         disabled={!file}
       >
-        <Text style={styles.primaryTxt}>Enviar</Text>
+        <Text style={estilos.primaryTxt}>Enviar</Text>
       </TouchableOpacity>
     </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({
+const estilos = StyleSheet.create({
   safe: { flex: 1, backgroundColor: "#fff" },
 
-  header: {
+  // ===== HEADER (igual ao modelo) =====
+  topo: {
+    width: "100%",
+    height: 200,
     backgroundColor: NAVY,
-    paddingHorizontal: 16,
-    paddingTop: 6,
-    paddingBottom: 18,
-    flexDirection: "row",
+    borderBottomLeftRadius: 80,
+    borderBottomRightRadius: 80,
     alignItems: "center",
-    justifyContent: "space-between",
-    borderBottomLeftRadius: 16,
-    borderBottomRightRadius: 16,
+    justifyContent: "flex-start",
+    position: "relative",
+    paddingTop: 40,
   },
-  headerBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "rgba(255,255,255,0.15)",
-  },
-  headerTitle: {
+  tituloTopo: {
     color: "#fff",
-    fontSize: 22,
+    fontSize: 28,
     fontWeight: "700",
-    letterSpacing: 0.3,
+    marginTop: 30,
   },
+  botaoVoltar: { position: "absolute", left: 20, top: 70 },
+  iconeVoltar: { width: 30, height: 30, tintColor: "#fff" },
+  botaoNotificacao: { position: "absolute", right: 20, top: 70 },
+  iconeNotificacao: { width: 30, height: 30, tintColor: "#fff" },
 
-  hero: {
-    marginTop: -18,
-    alignSelf: "center",
+  circuloIcone: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
     backgroundColor: "#fff",
-    width: 96,
-    height: 96,
-    borderRadius: 48,
     alignItems: "center",
     justifyContent: "center",
-    elevation: 3,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 4 },
+    position: "absolute",
+    bottom: -60,
+    borderWidth: 3,
+    borderColor: "#fff",
   },
 
+  // ===== Conteúdo =====
   hint: {
     marginTop: 8,
     textAlign: "center",

@@ -1,5 +1,12 @@
 import React, { memo, useMemo } from "react";
-import {View,Text,StyleSheet,TouchableOpacity,FlatList,Alert } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  FlatList,
+  Alert,
+} from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -120,29 +127,42 @@ export default function SolicitacoesScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      {/* Header roxo */}
-      <View style={styles.header}>
+      {/* ===== HEADER estilo do modelo ===== */}
+      <View style={styles.topo}>
         <TouchableOpacity
+          style={styles.botaoVoltar}
           onPress={() =>
             router.canGoBack() ? router.back() : router.push("/(tabs)/conta")
           }
-          style={styles.headerBtn}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
         >
-          <Ionicons name="chevron-back" size={22} color="#FFFFFF" />
+          <Ionicons name="chevron-back" size={28} color="#fff" />
         </TouchableOpacity>
 
-        <Text style={styles.headerTitle}>Aprovações</Text>
-
-        <TouchableOpacity onPress={() => Alert.alert("Alertas", "Notificações ou pendências")}>
-          <Ionicons name="alert-circle-outline" size={22} color="#FFFFFF" />
+        <TouchableOpacity
+          style={styles.botaoNotificacao}
+          onPress={() => Alert.alert("Alertas", "Notificações ou pendências")}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        >
+          <Ionicons name="notifications-outline" size={24} color="#fff" />
         </TouchableOpacity>
+
+        <Text style={styles.tituloTopo}>Aprovações</Text>
+
+        {/* círculo/ícone central sobreposto */}
+        <View style={styles.circuloIcone} pointerEvents="none">
+          <Ionicons name="document-text-outline" size={40} color={HEADER_BG} />
+          <Ionicons
+            name="checkmark-circle"
+            size={26}
+            color="#34D399"
+            style={{ position: "absolute", right: 8, bottom: 8 }}
+          />
+        </View>
       </View>
 
-      {/* Ícone central */}
-      <View style={styles.hero}>
-        <Ionicons name="document-text" size={40} color="#4B3E6A" />
-        <Ionicons name="checkmark-circle" size={26} color="#34D399" style={{ marginLeft: -10 }} />
-      </View>
+      {/* espaço para o círculo não cobrir a lista */}
+      <View style={{ height: 80 }} />
 
       {/* Título da seção */}
       <Text style={styles.sectionTitle}>Manipulados solicitados</Text>
@@ -170,7 +190,6 @@ export default function SolicitacoesScreen() {
             }
           />
         )}
-
       />
 
       {/* Botão flutuante */}
@@ -185,7 +204,7 @@ export default function SolicitacoesScreen() {
 }
 
 /* ---------- ESTILOS ---------- */
-const HEADER_BG = "#2F235A";
+const HEADER_BG = "#242760"; // azul do modelo
 const CARD_BG = "#F3F4F6";
 const TEXT_PRIMARY = "#111827";
 const TEXT_MUTED = "#6B7280";
@@ -193,48 +212,41 @@ const TEXT_MUTED = "#6B7280";
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: "#FFFFFF" },
 
-  header: {
+  /* ===== Header do modelo ===== */
+  topo: {
+    width: "100%",
+    height: 200,
     backgroundColor: HEADER_BG,
-    paddingHorizontal: 16,
-    paddingTop: 6,
-    paddingBottom: 18,
-    flexDirection: "row",
+    borderBottomLeftRadius: 80,
+    borderBottomRightRadius: 80,
     alignItems: "center",
-    justifyContent: "space-between",
-    borderBottomLeftRadius: 16,
-    borderBottomRightRadius: 16,
+    justifyContent: "flex-start",
+    position: "relative",
+    paddingTop: 40,
   },
-  headerBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "rgba(255,255,255,0.15)",
-  },
-  headerTitle: {
-    color: "#FFFFFF",
-    fontSize: 22,
+  tituloTopo: {
+    color: "#fff",
+    fontSize: 28,
     fontWeight: "700",
-    letterSpacing: 0.3,
+    marginTop: 30,
   },
+  botaoVoltar: { position: "absolute", left: 20, top: 70 },
+  botaoNotificacao: { position: "absolute", right: 20, top: 70 },
 
-  hero: {
-    marginTop: -18,
-    alignSelf: "center",
-    backgroundColor: "#FFFFFF",
-    width: 96,
-    height: 96,
-    borderRadius: 48,
+  circuloIcone: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: "#fff",
     alignItems: "center",
     justifyContent: "center",
-    elevation: 3,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 4 },
+    position: "absolute",
+    bottom: -60,
+    borderWidth: 3,
+    borderColor: "#fff",
   },
 
+  /* ===== Conteúdo ===== */
   sectionTitle: {
     fontSize: 18,
     fontWeight: "700",
