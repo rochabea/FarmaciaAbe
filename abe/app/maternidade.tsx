@@ -12,7 +12,7 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { supabase } from "../lib/supabase";
-import { useCart } from "./context/CartContext"; // ajuste se necessário
+import { useCart } from "./context/CartContext"; 
 
 type Product = {
   id: string;
@@ -41,7 +41,7 @@ export default function Medicamentos() {
           .select(
             "id, name, price_cents, image_url, categories!inner(name), created_at"
           )
-          .eq("categories.name", "Analgésicos")
+          .eq("categories.name", "Maternidade")
           .order("created_at", { ascending: false })
           .limit(50);
 
@@ -85,7 +85,7 @@ export default function Medicamentos() {
           />
         </TouchableOpacity>
 
-        <Text style={styles.topTitle}>Analgésicos</Text>
+        <Text style={styles.topTitle}>Maternidade</Text>
 
         <TouchableOpacity
           style={styles.notification}
@@ -99,7 +99,7 @@ export default function Medicamentos() {
 
         <View style={styles.iconCircle}>
           <Image
-            source={require("../assets/images/medicine.png")}
+            source={require("../assets/images/bebe.png")}
             style={styles.sacolaIcon}
           />
         </View>

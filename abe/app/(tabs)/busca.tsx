@@ -16,7 +16,7 @@ export default function SearchScreen() {
   const router = useRouter();
 
   const categories = [
-    { name: "Medicamentos",          icon: require("../../assets/images/medicamentos.png"), href: "/medicamentos" },
+    { name: "Analgésicos",          icon: require("../../assets/images/medicamentos.png"), href: "/medicamentos" },
     { name: "Bem-estar",             icon: require("../../assets/images/maos.png"),         href: "/bemestar" },
     { name: "Maternidade",           icon: require("../../assets/images/bebe.png"),         href: "/maternidade" },
     { name: "Cosméticos",            icon: require("../../assets/images/cosmeticos.png"),   href: "/beleza" },
