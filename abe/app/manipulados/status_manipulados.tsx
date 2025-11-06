@@ -1,4 +1,4 @@
-// app/manipulados/status_manipulados.tsx (ajuste o caminho conforme seu projeto)
+// app/manipulados/status_manipulados.tsx
 import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -18,6 +18,20 @@ export default function StatusPedidoScreen() {
     n?: string; d1?: string; d2?: string; d3?: string;
   }>();
 
+  const goEntrega = () => {
+    router.push({
+      pathname: "../entrega",   
+      params: { id, n },
+    });
+  };
+
+  const goRetirada = () => {
+    router.push({
+      pathname: "../retirada",  
+      params: { id, n },
+    });
+  };
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }} edges={["top", "left", "right"]}>
       {/* ===== HEADER estilo do modelo ===== */}
@@ -32,7 +46,7 @@ export default function StatusPedidoScreen() {
 
         <TouchableOpacity
           style={styles.botaoNotificacao}
-          onPress={() => {}}
+          onPress={() => router.push("/notificacao")}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
         >
           <Ionicons name="notifications-outline" size={24} color="#fff" />
@@ -70,10 +84,11 @@ export default function StatusPedidoScreen() {
 
       {/* Ações */}
       <View style={{ paddingHorizontal: 16, gap: 12, marginTop: 10 }}>
-        <TouchableOpacity style={styles.primaryBtn} activeOpacity={0.9} onPress={() => { /* fluxo entrega */ }}>
+        <TouchableOpacity style={styles.primaryBtn} activeOpacity={0.9} onPress={goEntrega}>
           <Text style={styles.primaryTxt}>Solicitar entrega</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.primaryBtn} activeOpacity={0.9} onPress={() => { /* fluxo retirada */ }}>
+
+        <TouchableOpacity style={styles.primaryBtn} activeOpacity={0.9} onPress={goRetirada}>
           <Text style={styles.primaryTxt}>Fazer retirada</Text>
         </TouchableOpacity>
       </View>
