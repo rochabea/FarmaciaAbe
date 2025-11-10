@@ -54,15 +54,15 @@ export default function TelaProduto() {
   const inc = () => setQty((q) => Math.min(99, q + 1));
   const dec = () => setQty((q) => Math.max(1, q - 1));
 
-  const onBuy = () => {
-    addItem({
-      id: product.id,
-      name: product.name,
-      price: product.price ?? 0,
-      image: product.image,
-      qty,
-    });
-    router.push("/cesta");
+  const onBuy = async () => {
+    try {
+      await addItem(product.id, qty);
+      // Aguarda um pouco para garantir que o carrinho foi atualizado
+      await new Promise(resolve => setTimeout(resolve, 300));
+      router.push("/cesta");
+    } catch (error: any) {
+      Alert.alert("Erro", error.message || "Não foi possível adicionar o produto ao carrinho");
+    }
   };
 
   return (

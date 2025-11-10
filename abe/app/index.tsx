@@ -1,18 +1,29 @@
 import React, { useEffect } from 'react';
 import { View, Image, StyleSheet, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useAuth } from './context/AuthContext';
 
 export default function Splash() {
   const router = useRouter();
+  const { user, loading } = useAuth();
 
   useEffect(() => {
-    // Navega 2 segundos
+    // Aguarda o carregamento da autenticação
+    if (loading) return;
+
+    // Navega após 2 segundos
     const timer = setTimeout(() => {
-      router.replace('/home'); 
+      if (user) {
+        // Se o usuário estiver autenticado, vai para home
+        router.replace('/(tabs)/home');
+      } else {
+        // Se não estiver autenticado, vai para tela de boas-vindas
+        router.replace('/bemvindo');
+      }
     }, 2000);
 
     return () => clearTimeout(timer);
-  }, []);
+  }, [loading, user]);
 
   return (
     <View style={styles.container}>

@@ -1,20 +1,31 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Image, Alert, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useAuth } from './context/AuthContext';
 
 export default function Sair() {
   const router = useRouter();
+  const { signOut } = useAuth();
+  const [loading, setLoading] = useState(false);
 
   const handleCancelar = () => {
-    router.push('/conta'); 
+    router.push('/(tabs)/conta'); 
   };
 
   const handleVoltar = () => {
-    router.push('/conta'); 
+    router.push('/(tabs)/conta'); 
   };
 
-  const handleSair = () => {
-    router.push('/login'); 
+  const handleSair = async () => {
+    try {
+      setLoading(true);
+      await signOut();
+      router.replace('/login');
+    } catch (error: any) {
+      console.error('Erro ao sair:', error);
+      Alert.alert('Erro', 'Não foi possível fazer logout. Tente novamente.');
+      setLoading(false);
+    }
   };
 
   return (
@@ -54,12 +65,22 @@ export default function Sair() {
           </TouchableOpacity>
 
           {/* Botão Sair */}
-          <TouchableOpacity style={estilos.botaoSair} onPress={handleSair}>
-            <Image
-              source={require('../assets/images/sair.png')}
-              style={estilos.iconeBotaoSair}
-            />
-            <Text style={estilos.textoBotao}>Sair</Text>
+          <TouchableOpacity 
+            style={[estilos.botaoSair, loading && estilos.botaoDisabled]} 
+            onPress={handleSair}
+            disabled={loading}
+          >
+            {loading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <>
+                <Image
+                  source={require('../assets/images/sair.png')}
+                  style={estilos.iconeBotaoSair}
+                />
+                <Text style={estilos.textoBotao}>Sair</Text>
+              </>
+            )}
           </TouchableOpacity>
         </View>
       </View>
@@ -179,5 +200,8 @@ const estilos = StyleSheet.create({
     width: 30,
     height: 30,
     tintColor: '#fff',
+  },
+  botaoDisabled: {
+    opacity: 0.6,
   },
 });

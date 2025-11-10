@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, ScrollView } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, ScrollView, Alert, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useAuth } from './context/AuthContext';
 
 export default function Register() {
   const router = useRouter();
+  const { signUp } = useAuth();
 
   const [name, setName] = useState('');
   const [cpf, setCpf] = useState('');
@@ -11,15 +13,58 @@ export default function Register() {
   const [password, setPassword] = useState('');
   const [birthDate, setBirthDate] = useState('');
   const [phone, setPhone] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleRegister = () => {
-    console.log('Nome:', name);
-    console.log('CPF:', cpf);
-    console.log('Email:', email);
-    console.log('Senha:', password);
-    console.log('Data de Nascimento:', birthDate);
-    console.log('Telefone:', phone);
-    router.replace('/home'); 
+  const validateEmail = (email: string) => {
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return re.test(email);
+  };
+
+  const handleRegister = async () => {
+    // Validações
+    if (!name.trim() || !email.trim() || !password.trim()) {
+      Alert.alert('Erro', 'Por favor, preencha pelo menos nome, email e senha');
+      return;
+    }
+
+    if (!validateEmail(email.trim())) {
+      Alert.alert('Erro', 'Por favor, insira um email válido');
+      return;
+    }
+
+    if (password.length < 6) {
+      Alert.alert('Erro', 'A senha deve ter pelo menos 6 caracteres');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      await signUp(email.trim(), password, {
+        name: name.trim(),
+        cpf: cpf.trim(),
+        birth_date: birthDate.trim(),
+        phone: phone.trim(),
+      });
+      
+      Alert.alert(
+        'Sucesso',
+        'Conta criada com sucesso! Verifique seu email para confirmar a conta.',
+        [
+          {
+            text: 'OK',
+            onPress: () => router.replace('/login'),
+          },
+        ]
+      );
+    } catch (error: any) {
+      console.error('Erro no cadastro:', error);
+      Alert.alert(
+        'Erro ao cadastrar',
+        error.message || 'Não foi possível criar a conta. Tente novamente.'
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -103,8 +148,16 @@ export default function Register() {
         </View>
 
         {/* Botão Cadastrar */}
-        <TouchableOpacity style={styles.button} onPress={handleRegister}>
-          <Text style={styles.buttonText}>Cadastrar</Text>
+        <TouchableOpacity 
+          style={[styles.button, loading && styles.buttonDisabled]} 
+          onPress={handleRegister}
+          disabled={loading}
+        >
+          {loading ? (
+            <ActivityIndicator color="#FFFFFF" />
+          ) : (
+            <Text style={styles.buttonText}>Cadastrar</Text>
+          )}
         </TouchableOpacity>
 
       </ScrollView>
@@ -179,5 +232,8 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 18,
     fontWeight: '700',
+  },
+  buttonDisabled: {
+    opacity: 0.6,
   },
 });

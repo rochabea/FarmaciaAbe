@@ -1,33 +1,62 @@
-import React, { useState } from 'react';
-import { View, Text, Image, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
-import { useRouter } from 'expo-router';
+import React, { useCallback } from 'react';
+import { View, Text, Image, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator, Alert } from 'react-native';
+import { useRouter, useFocusEffect } from 'expo-router';
+import { useCart } from './context/CartContext';
+import { useAuth } from './context/AuthContext';
 
 export default function Cesta() {
   const router = useRouter();
+  const { user, loading: authLoading } = useAuth();
+  const { items, loading, error, setQty, removeItem, total, refresh } = useCart();
 
-  // Itens da cesta
-  const [itens, setItens] = useState([
-    { id: 1, nome: 'Aspirina', preco: 10.99, quantidade: 1, imagem: require('../assets/images/remedio.png') },
-    { id: 2, nome: 'Aspirina', preco: 10.99, quantidade: 1, imagem: require('../assets/images/remedio.png') },
-  ]);
+  // Recarrega o carrinho quando a tela é focada
+  useFocusEffect(
+    useCallback(() => {
+      if (user) {
+        refresh();
+      }
+    }, [refresh, user])
+  );
 
   // Funções para alterar quantidade
-  const aumentarQuantidade = (id: number) => {
-    setItens(itens.map(item => item.id === id ? { ...item, quantidade: item.quantidade + 1 } : item));
+  const aumentarQuantidade = async (itemId: string, qtyAtual: number) => {
+    try {
+      await setQty(itemId, qtyAtual + 1);
+    } catch (error: any) {
+      Alert.alert("Erro", error.message || "Não foi possível atualizar a quantidade");
+    }
   };
 
-  const diminuirQuantidade = (id: number) => {
-    setItens(itens.map(item => 
-      item.id === id && item.quantidade > 1 ? { ...item, quantidade: item.quantidade - 1 } : item
-    ));
+  const diminuirQuantidade = async (itemId: string, qtyAtual: number) => {
+    try {
+      if (qtyAtual > 1) {
+        await setQty(itemId, qtyAtual - 1);
+      } else {
+        await removerItem(itemId);
+      }
+    } catch (error: any) {
+      Alert.alert("Erro", error.message || "Não foi possível atualizar a quantidade");
+    }
   };
 
-  const removerItem = (id: number) => {
-    setItens(itens.filter(item => item.id !== id));
+  const removerItemDoCarrinho = async (itemId: string) => {
+    try {
+      await removeItem(itemId);
+    } catch (error: any) {
+      Alert.alert("Erro", error.message || "Não foi possível remover o item");
+    }
   };
 
   const calcularTotal = () => {
-    return itens.reduce((total, item) => total + item.preco * item.quantidade, 0).toFixed(2);
+    return total.toFixed(2);
+  };
+
+  // Função para obter a imagem do produto
+  const getProductImage = (imageUrl: string | null | undefined) => {
+    if (imageUrl) {
+      return { uri: imageUrl };
+    }
+    return require('../assets/images/remedio.png');
   };
 
   return (
@@ -51,50 +80,115 @@ export default function Cesta() {
 
       <View style={{ height: 80 }} />
 
-      {/* Vendedor */}
-      <View style={styles.vendedorRow}>
-        <Text style={styles.vendidoPor}>Vendido por Drogasil</Text>
-        <TouchableOpacity onPress={() => setItens([])}>
-          <Text style={styles.removerText}>Remover</Text>
-        </TouchableOpacity>
-      </View>
+      {/* Loading ou Erro */}
+      {loading && (
+        <View style={styles.centerContainer}>
+          <ActivityIndicator size="large" color="#242760" />
+          <Text style={styles.loadingText}>Carregando carrinho...</Text>
+        </View>
+      )}
+
+      {error && !loading && (
+        <View style={styles.centerContainer}>
+          <Text style={styles.errorText}>{error}</Text>
+          {error.includes("logado") || error.includes("autenticado") ? (
+            <TouchableOpacity 
+              onPress={() => router.push('/login')} 
+              style={styles.retryButton}
+            >
+              <Text style={styles.retryText}>Fazer login</Text>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity onPress={refresh} style={styles.retryButton}>
+              <Text style={styles.retryText}>Tentar novamente</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      )}
+
+      {!user && !authLoading && !loading && !error && (
+        <View style={styles.centerContainer}>
+          <Text style={styles.emptyText}>Você precisa estar logado para ver o carrinho</Text>
+          <TouchableOpacity 
+            onPress={() => router.push('/login')} 
+            style={styles.continuarBtn}
+          >
+            <Text style={styles.continuarText}>Fazer login</Text>
+          </TouchableOpacity>
+        </View>
+      )}
 
       {/* Itens da cesta */}
-      <View style={styles.cestaBox}>
-        {itens.map((item) => (
-          <View key={item.id} style={styles.itemRow}>
-            <Image source={item.imagem} style={styles.itemImage} />
-            <View style={{ flex: 1 }}>
-              <Text style={styles.itemName}>{item.nome}</Text>
-              <View style={styles.quantidadeRow}>
-                <TouchableOpacity onPress={() => diminuirQuantidade(item.id)}>
-                  <Text style={styles.qtdBtn}>-</Text>
-                </TouchableOpacity>
-                <Text style={styles.quantidade}>{item.quantidade}x</Text>
-                <TouchableOpacity onPress={() => aumentarQuantidade(item.id)}>
-                  <Text style={styles.qtdBtn}>+</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-            <Text style={styles.itemPrice}>R$ {(item.preco * item.quantidade).toFixed(2)}</Text>
+      {!loading && !error && items.length === 0 && (
+        <View style={styles.centerContainer}>
+          <Text style={styles.emptyText}>Seu carrinho está vazio</Text>
+          <TouchableOpacity onPress={() => router.push('/(tabs)/home')} style={styles.continuarBtn}>
+            <Text style={styles.continuarText}>Ver produtos</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {!loading && !error && items.length > 0 && (
+        <>
+          {/* Vendedor */}
+          <View style={styles.vendedorRow}>
+            <Text style={styles.vendidoPor}>Itens no carrinho</Text>
           </View>
-        ))}
-      </View>
+
+          {/* Itens da cesta */}
+          <View style={styles.cestaBox}>
+            {items.map((item) => (
+              <View key={item.id} style={styles.itemRow}>
+                <Image 
+                  source={getProductImage(item.image_url)} 
+                  style={styles.itemImage} 
+                  resizeMode="contain"
+                />
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.itemName}>{item.name}</Text>
+                  <View style={styles.quantidadeRow}>
+                    <TouchableOpacity onPress={() => diminuirQuantidade(item.id, item.qty)}>
+                      <Text style={styles.qtdBtn}>-</Text>
+                    </TouchableOpacity>
+                    <Text style={styles.quantidade}>{item.qty}x</Text>
+                    <TouchableOpacity onPress={() => aumentarQuantidade(item.id, item.qty)}>
+                      <Text style={styles.qtdBtn}>+</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+                <View style={{ alignItems: 'flex-end' }}>
+                  <Text style={styles.itemPrice}>R$ {(item.price * item.qty).toFixed(2)}</Text>
+                  <TouchableOpacity 
+                    onPress={() => removerItemDoCarrinho(item.id)}
+                    style={styles.removeButton}
+                  >
+                    <Text style={styles.removeText}>Remover</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            ))}
+          </View>
+        </>
+      )}
 
       {/* Total */}
-      <View style={styles.totalBox}>
-        <Text style={styles.subtotalText}>Subtotal</Text>
-        <Text style={styles.totalText}>Total</Text>
-        <Text style={styles.totalValor}>R$ {calcularTotal()}</Text>
-      </View>
+      {!loading && !error && items.length > 0 && (
+        <>
+          <View style={styles.totalBox}>
+            <Text style={styles.subtotalText}>Subtotal</Text>
+            <Text style={styles.totalText}>Total</Text>
+            <Text style={styles.totalValor}>R$ {calcularTotal()}</Text>
+          </View>
 
-      {/* Botão continuar */}
-      <TouchableOpacity 
-        style={styles.continuarBtn} 
-        onPress={() => router.push(`/forma-entrega?subtotal=${calcularTotal()}`)}
-      >
-        <Text style={styles.continuarText}>Continuar</Text>
-      </TouchableOpacity>
+          {/* Botão continuar */}
+          <TouchableOpacity 
+            style={styles.continuarBtn} 
+            onPress={() => router.push(`/forma-entrega?subtotal=${calcularTotal()}`)}
+          >
+            <Text style={styles.continuarText}>Continuar</Text>
+          </TouchableOpacity>
+        </>
+      )}
     </ScrollView>
   );
 }
@@ -247,5 +341,46 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: '700',
+  },
+  centerContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 40,
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: '#6B7280',
+  },
+  errorText: {
+    fontSize: 16,
+    color: '#EF4444',
+    textAlign: 'center',
+    marginBottom: 10,
+  },
+  retryButton: {
+    marginTop: 10,
+    padding: 10,
+    backgroundColor: '#242760',
+    borderRadius: 8,
+  },
+  retryText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  emptyText: {
+    fontSize: 18,
+    color: '#6B7280',
+    marginBottom: 20,
+  },
+  removeButton: {
+    marginTop: 4,
+  },
+  removeText: {
+    fontSize: 12,
+    color: '#EF4444',
+    textDecorationLine: 'underline',
   },
 });
