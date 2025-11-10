@@ -48,21 +48,16 @@ async function ensureCartId(): Promise<string> {
 export async function fetchCartWithItems(): Promise<{ items: DbCartItem[]; subtotalCents: number }> {
   const cartId = await ensureCartId();
 
+  // Query simplificada sem ordenação
   const { data, error } = await supabase
     .from('cart_items')
-    .select(
-      `
-        id,
-        cart_id,
-        product_id,
-        quantity,
-        products:products ( id, name, image_url, price_cents )
-      `
-    )
-    .eq('cart_id', cartId)
-    .order('created_at', { ascending: false });
+    .select('id, cart_id, product_id, quantity, products:products(id, name, image_url, price_cents)')
+    .eq('cart_id', cartId);
 
-  if (error) throw error;
+  if (error) {
+    console.error('Erro ao buscar carrinho:', error);
+    throw error;
+  }
 
   const items = (data ?? []) as unknown as DbCartItem[];
   const subtotalCents = items.reduce((acc, it) => {

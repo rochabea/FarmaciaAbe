@@ -88,12 +88,18 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       
       const cartItems: CartItem[] = dbItems.map((item) => {
         const priceCents = item.products?.price_cents ?? 0;
+        const price = priceCents / 100; // converte centavos para reais
+        const qty = item.quantity || 0;
+        
+        // Debug: verifica se os valores estão corretos
+        console.log(`Item: ${item.products?.name}, Preço: R$ ${price}, Quantidade: ${qty}, Total: R$ ${(price * qty).toFixed(2)}`);
+        
         return {
           id: item.id,
           productId: item.product_id,
           name: item.products?.name || "Produto sem nome",
-          price: priceCents / 100, // converte centavos para reais
-          qty: item.quantity, // mapeia quantity do banco para qty no contexto
+          price: price,
+          qty: qty,
           image_url: item.products?.image_url || null,
         };
       });
@@ -115,8 +121,14 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   }, [loadCart]);
 
   const value = useMemo<Ctx>(() => {
-    const total = state.items.reduce((s, i) => s + i.price * i.qty, 0);
-    const count = state.items.reduce((s, i) => s + i.qty, 0);
+    const total = state.items.reduce((s, i) => {
+      const itemTotal = (i.price || 0) * (i.qty || 0);
+      console.log(`Calculando total: Item ${i.name} - Preço: ${i.price}, Qty: ${i.qty}, Subtotal: ${itemTotal}, Total acumulado: ${s + itemTotal}`);
+      return s + itemTotal;
+    }, 0);
+    const count = state.items.reduce((s, i) => s + (i.qty || 0), 0);
+    
+    console.log(`Total do carrinho: R$ ${total.toFixed(2)}, Total de itens: ${count}`);
     
     return {
       ...state,

@@ -157,7 +157,12 @@ export default function Cesta() {
                   </View>
                 </View>
                 <View style={{ alignItems: 'flex-end' }}>
-                  <Text style={styles.itemPrice}>R$ {(item.price * item.qty).toFixed(2)}</Text>
+                  <Text style={styles.itemPrice}>
+                    R$ {((item.price || 0) * (item.qty || 0)).toFixed(2)}
+                  </Text>
+                  <Text style={styles.itemPriceUnit}>
+                    R$ {(item.price || 0).toFixed(2)} cada
+                  </Text>
                   <TouchableOpacity 
                     onPress={() => removerItemDoCarrinho(item.id)}
                     style={styles.removeButton}
@@ -306,6 +311,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#242760',
+  },
+  itemPriceUnit: {
+    fontSize: 12,
+    fontWeight: '400',
+    color: '#6B7280',
+    marginTop: 2,
   },
   totalBox: {
     width: '90%',
