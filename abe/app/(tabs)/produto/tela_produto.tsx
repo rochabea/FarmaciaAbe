@@ -12,7 +12,9 @@ import {
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons"; // << novo
 import { useCart } from "../../context/CartContext";
+import { useFavorites } from "../../context/FavoritesContext"; // << novo (note o caminho)
 
 const NAVY = "#242760";
 const GRAY = "#6B7280";
@@ -37,6 +39,7 @@ export default function TelaProduto() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { addItem } = useCart();
+  const { isFav, toggle } = useFavorites(); // << novo
   const { id } = useLocalSearchParams<{ id?: string }>();
 
   const product: Product = useMemo(
@@ -58,12 +61,14 @@ export default function TelaProduto() {
     try {
       await addItem(product.id, qty);
       // Aguarda um pouco para garantir que o carrinho foi atualizado
-      await new Promise(resolve => setTimeout(resolve, 300));
+      await new Promise((resolve) => setTimeout(resolve, 300));
       router.push("/cesta");
     } catch (error: any) {
       Alert.alert("Erro", error.message || "Não foi possível adicionar o produto ao carrinho");
     }
   };
+
+  const fav = isFav(product.id); // << novo
 
   return (
     <SafeAreaView style={styles.safe} edges={["top", "left", "right"]}>
@@ -95,7 +100,22 @@ export default function TelaProduto() {
           <Text style={styles.productTitle}>{product.name}</Text>
         </Pressable>
 
-        <Image source={product.image} style={styles.prodImage} resizeMode="contain" />
+        {/* Imagem com botão de favorito flutuante */}
+        <View style={styles.imageWrap}>
+          <Image source={product.image} style={styles.prodImage} resizeMode="contain" />
+          <TouchableOpacity
+            onPress={() => toggle(product.id)}
+            style={styles.heartFloat}
+            accessibilityLabel={fav ? "Remover dos favoritos" : "Adicionar aos favoritos"}
+            activeOpacity={0.8}
+          >
+            <Ionicons
+              name={fav ? "heart" : "heart-outline"}
+              size={26}
+              color={fav ? "#e11d48" : "#6B7280"}
+            />
+          </TouchableOpacity>
+        </View>
 
         <View style={{ alignItems: "center", marginTop: 10 }}>
           {!!product.subtitle && <Text style={styles.subtitle}>{product.subtitle}</Text>}
@@ -205,7 +225,22 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
 
-  prodImage: { width: "100%", height: 140, marginTop: 12, alignSelf: "center" },
+  /* Imagem + coração flutuante */
+  imageWrap: { position: "relative", width: "100%", marginTop: 12, alignSelf: "center" },
+  prodImage: { width: "100%", height: 140 },
+  heartFloat: {
+    position: "absolute",
+    right: 8,
+    top: 8,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "#ffffffee",
+    borderWidth: 1,
+    borderColor: BORDER,
+    alignItems: "center",
+    justifyContent: "center",
+  },
 
   subtitle: { textAlign: "center", color: GRAY, fontSize: 12 },
 
@@ -285,5 +320,5 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   descText: { fontSize: 12, color: GRAY, lineHeight: 18 },
-  link: { color: NAVY, fontSize: 13, textDecorationLine: 'underline', marginTop: 4 },
+  link: { color: NAVY, fontSize: 13, textDecorationLine: "underline", marginTop: 4 },
 });

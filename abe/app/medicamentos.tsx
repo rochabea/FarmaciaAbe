@@ -38,9 +38,7 @@ export default function Medicamentos() {
         setLoading(true);
         const { data, error } = await supabase
           .from("products")
-          .select(
-            "id, name, price_cents, image_url, categories!inner(name), created_at"
-          )
+          .select("id, name, price_cents, image_url, categories!inner(name), created_at")
           .eq("categories.name", "Analgésicos")
           .order("created_at", { ascending: false })
           .limit(50);
@@ -61,42 +59,34 @@ export default function Medicamentos() {
   const handleBuy = async (p: Product) => {
     try {
       await addItem(p.id, 1);
-      // Aguarda um pouco para garantir que o carrinho foi atualizado
-      await new Promise(resolve => setTimeout(resolve, 300));
+      await new Promise((resolve) => setTimeout(resolve, 300));
       router.push("/cesta");
     } catch (error: any) {
       Alert.alert("Erro", error.message || "Não foi possível adicionar o produto ao carrinho");
     }
   };
 
+  // >>> NOVO: abrir a tela do produto com o id
+  const handleOpen = (id: string) => {
+    router.push({ pathname: "/produto/tela_produto", params: { id } });
+  };
+
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      {/* ===== Header (idêntico ao modelo) ===== */}
+      {/* ===== Header ===== */}
       <View style={styles.topRect}>
         <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-          <Image
-            source={require("../assets/images/seta-esquerda.png")}
-            style={styles.backIcon}
-          />
+          <Image source={require("../assets/images/seta-esquerda.png")} style={styles.backIcon} />
         </TouchableOpacity>
 
         <Text style={styles.topTitle}>Analgésicos</Text>
 
-        <TouchableOpacity
-          style={styles.notification}
-          onPress={() => router.push("/notificacao")}
-        >
-          <Image
-            source={require("../assets/images/notificacaoB.png")}
-            style={styles.notificationIcon}
-          />
+        <TouchableOpacity style={styles.notification} onPress={() => router.push("/notificacao")}>
+          <Image source={require("../assets/images/notificacaoB.png")} style={styles.notificationIcon} />
         </TouchableOpacity>
 
         <View style={styles.iconCircle}>
-          <Image
-            source={require("../assets/images/medicine.png")}
-            style={styles.sacolaIcon}
-          />
+          <Image source={require("../assets/images/medicine.png")} style={styles.sacolaIcon} />
         </View>
       </View>
 
@@ -120,12 +110,16 @@ export default function Medicamentos() {
       ) : (
         <View style={styles.grid}>
           {items.map((item) => (
-            <ProductCard key={item.id} item={item} onBuy={() => handleBuy(item)} />
+            <ProductCard
+              key={item.id}
+              item={item}
+              onBuy={() => handleBuy(item)}
+              onOpen={() => handleOpen(item.id)}   // <<< NOVO
+            />
           ))}
         </View>
       )}
 
-      {/* Espaço final para respiro abaixo da tab bar */}
       <View style={{ height: 40 }} />
     </ScrollView>
   );
@@ -135,9 +129,11 @@ export default function Medicamentos() {
 const ProductCard = memo(function ProductCard({
   item,
   onBuy,
+  onOpen, // <<< NOVO
 }: {
   item: Product;
   onBuy: () => void;
+  onOpen: () => void; // <<< NOVO
 }) {
   const priceStr = useMemo(() => {
     if (typeof item.price_cents !== "number") return null;
@@ -145,15 +141,13 @@ const ProductCard = memo(function ProductCard({
   }, [item.price_cents]);
 
   return (
-    <View style={styles.card}>
+    // <<< NOVO: card inteiro clicável abre a tela de produto
+    <TouchableOpacity style={styles.card} activeOpacity={0.9} onPress={onOpen}>
       <View style={styles.imageWrap}>
         {item.image_url ? (
           <Image source={{ uri: item.image_url }} style={styles.cardImg} />
         ) : (
-          <Image
-            source={require("../assets/images/remedio.png")}
-            style={styles.cardImg}
-          />
+          <Image source={require("../assets/images/remedio.png")} style={styles.cardImg} />
         )}
       </View>
 
@@ -170,14 +164,15 @@ const ProductCard = memo(function ProductCard({
         )}
       </Text>
 
+      {/* Botão Comprar permanece funcional */}
       <TouchableOpacity style={styles.buyBtn} activeOpacity={0.9} onPress={onBuy}>
         <Text style={styles.buyTxt}>Comprar</Text>
       </TouchableOpacity>
-    </View>
+    </TouchableOpacity>
   );
 });
 
-/* ===== Estilos (header copiado do modelo) ===== */
+/* ===== Estilos ===== */
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
@@ -186,7 +181,7 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
 
-  // HEADER — exatamente como no modelo
+  // HEADER
   topRect: {
     width: "100%",
     height: 250,
@@ -203,24 +198,10 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     marginTop: 90,
   },
-  backButton: {
-    position: "absolute",
-    left: 20,
-    top: 98,
-  },
-  backIcon: {
-    width: 25,
-    height: 25,
-  },
-  notification: {
-    position: "absolute",
-    right: 20,
-    top: 92,
-  },
-  notificationIcon: {
-    width: 25,
-    height: 25,
-  },
+  backButton: { position: "absolute", left: 20, top: 98 },
+  backIcon: { width: 25, height: 25 },
+  notification: { position: "absolute", right: 20, top: 92 },
+  notificationIcon: { width: 25, height: 25 },
   iconCircle: {
     width: 120,
     height: 120,
@@ -233,12 +214,9 @@ const styles = StyleSheet.create({
     borderWidth: 3,
     borderColor: "#fff",
   },
-  sacolaIcon: {
-    width: 70,
-    height: 70,
-  },
+  sacolaIcon: { width: 70, height: 70 },
 
-  // GRID de produtos (2 colunas)
+  // GRID
   grid: {
     width: "90%",
     flexDirection: "row",
