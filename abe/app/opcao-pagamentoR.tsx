@@ -1,100 +1,53 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, Image, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import React from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
+import { useRouter } from 'expo-router';
 
-export default function Pagamento() {
+export default function CompraRealizada() {
   const router = useRouter();
-  const params = useLocalSearchParams();
-
-  const [subtotalValor, setSubtotalValor] = useState(0);
-  const [metodoSelecionado, setMetodoSelecionado] = useState<'pix' | 'credito' | null>(null);
-
-  useEffect(() => {
-    if (params?.subtotal) {
-      const valorConvertido = parseFloat(String(params.subtotal));
-      if (!isNaN(valorConvertido)) {
-        setSubtotalValor(valorConvertido);
-      }
-    }
-  }, [params]);
-
-  const handleContinuar = () => {
-    if (!metodoSelecionado) return;
-
-    const pathname = metodoSelecionado === 'pix' ? '/pixR' : '/creditoR';
-    router.push({ pathname, params: { subtotal: subtotalValor.toFixed(2) } });
-  };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      {/* Cabeçalho */}
+    <View style={styles.container}>
       <View style={styles.topRect}>
         <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
           <Image source={require('../assets/images/seta-esquerda.png')} style={styles.backIcon} />
         </TouchableOpacity>
-
-        <Text style={styles.topTitle}>Pagamento</Text>
-
-        <TouchableOpacity style={styles.notification} onPress={() => router.push("/notificacao")}>
-          <Image source={require('../assets/images/notificacaoB.png')} style={styles.notificationIcon} />
-        </TouchableOpacity>
-
+        <Text style={styles.topTitle}>Compra realizada</Text>
         <View style={styles.iconCircle}>
-          <Image source={require('../assets/images/carA.png')} style={styles.cartIcon} />
+          <Image source={require('../assets/images/verificado.png')} style={styles.checkIcon} />
         </View>
       </View>
 
-      <View style={{ height: 80 }} />
+      <View style={styles.centralBox}>
+        <View style={styles.mensagemBox}>
+          <Image source={require('../assets/images/entrega.png')} style={styles.caminhaoIcon} />
+          <Text style={styles.mensagemText}>
+            Compra realizada com sucesso!{'\n'}Aguarde no local da entrega.
+          </Text>
 
-      {/* Título */}
-      <View style={styles.linhaTitulo}>
-        <Text style={styles.tituloEntrega}>Como deseja pagar?</Text>
-      </View>
+          <TouchableOpacity
+            style={styles.avaliarBtn}
+            // para saber -> mudei esse caminho aqui 
+            onPress={() => router.push('/avaliacao')}
+          >
+            <Text style={styles.avaliarText}>Avaliar produto</Text>
+          </TouchableOpacity>
+        </View>
 
-      {/* Métodos de Pagamento */}
-      <View style={styles.metodosContainer}>
         <TouchableOpacity
-          style={[styles.metodoBox, metodoSelecionado === 'pix' && styles.metodoSelecionado]}
-          onPress={() => setMetodoSelecionado('pix')}
+          style={styles.cancelarBtn}
+          onPress={() => router.push('/cancelar-compra')} 
         >
-          <Image source={require('../assets/images/pix.png')} style={styles.metodoIcon} />
-          <Text style={styles.metodoText}>Pix</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.metodoBox, metodoSelecionado === 'credito' && styles.metodoSelecionado]}
-          onPress={() => setMetodoSelecionado('credito')}
-        >
-          <Image source={require('../assets/images/cartao-de-credito.png')} style={styles.metodoIcon} />
-          <Text style={styles.metodoText}>Crédito</Text>
+          <Text style={styles.cancelarText}>Cancelar compra</Text>
         </TouchableOpacity>
       </View>
-
-      {/* Subtotal */}
-      <View style={styles.totalBox}>
-        <Text style={styles.subtotalText}>Subtotal</Text>
-        <Text style={styles.totalText}>Total</Text>
-        <Text style={styles.totalValor}>R$ {subtotalValor.toFixed(2)}</Text>
-      </View>
-
-      {/* Botão Continuar */}
-      <TouchableOpacity
-        style={[styles.continuarBtn, { opacity: metodoSelecionado ? 1 : 0.6 }]}
-        disabled={!metodoSelecionado}
-        onPress={handleContinuar}
-      >
-        <Text style={styles.continuarText}>Continuar</Text>
-      </TouchableOpacity>
-    </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flexGrow: 1,
+    flex: 1,
     backgroundColor: '#fff',
-    alignItems: 'center',
-    paddingBottom: 40,
   },
   topRect: {
     width: '100%',
@@ -121,16 +74,7 @@ const styles = StyleSheet.create({
     width: 25,
     height: 25,
   },
-  notification: {
-    position: 'absolute',
-    right: 20,
-    top: 92,
-  },
-  notificationIcon: {
-    width: 25,
-    height: 25,
-  },
-  iconCircle: {
+    iconCircle: {
     width: 120,
     height: 120,
     borderRadius: 60,
@@ -138,84 +82,62 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     position: 'absolute',
-    bottom: -60,
+    bottom: -60, 
     borderWidth: 3,
     borderColor: '#fff',
+    },
+    checkIcon: {
+    width: 80,
+    height: 80,
+    resizeMode: 'contain',
+    },
+  centralBox: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center', 
+    width: '100%',
   },
-  cartIcon: {
-    width: 70,
-    height: 70,
-  },
-  linhaTitulo: {
+  mensagemBox: {
+    backgroundColor: '#F4F4F7',
     width: '90%',
+    borderRadius: 12,
+    padding: 20,
+    alignItems: 'center',
     marginBottom: 20,
   },
-  tituloEntrega: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#242760',
-  },
-  metodosContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: '90%',
-    marginBottom: 30,
-  },
-  metodoBox: {
-    backgroundColor: '#F4F4F7',
-    borderRadius: 12,
-    paddingVertical: 25,
-    paddingHorizontal: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: '45%',
-  },
-  metodoSelecionado: {
-    borderWidth: 2,
-    borderColor: '#242760',
-    backgroundColor: '#E9E9F5',
-  },
-  metodoIcon: {
-    width: 50,
-    height: 50,
-    marginBottom: 10,
+  caminhaoIcon: {
+    width: 71,
+    height: 71,
+    marginBottom: 15,
     resizeMode: 'contain',
   },
-  metodoText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#242760',
-  },
-  totalBox: {
-    width: '90%',
-    marginBottom: 30,
-  },
-  subtotalText: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#242760',
-    marginBottom: 5,
-  },
-  totalText: {
+  mensagemText: {
     fontSize: 18,
-    fontWeight: '400',
-    color: '#000',
-    marginBottom: 5,
-  },
-  totalValor: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#000',
+    fontWeight: '500',
+    textAlign: 'center',
+    color: '#27B190',
     marginBottom: 20,
   },
-  continuarBtn: {
+  avaliarBtn: {
     backgroundColor: '#242760',
-    width: '90%',
+    width: '80%',
     padding: 15,
     borderRadius: 12,
     alignItems: 'center',
   },
-  continuarText: {
+  avaliarText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  cancelarBtn: {
+    backgroundColor: '#FF4D4D',
+    width: '50%',
+    padding: 15,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  cancelarText: {
     color: '#fff',
     fontSize: 16,
     fontWeight: '700',

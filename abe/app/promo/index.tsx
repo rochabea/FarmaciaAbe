@@ -7,6 +7,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
+  Alert,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { useCart } from "../context/CartContext"; // <-- ajuste se necessário
@@ -32,15 +33,15 @@ export default function Promocoes() {
   const [itens] = useState(DATA); 
 
   const handleBuy = useCallback(
-    (p: Product) => {
-      addItem({
-        id: p.id,
-        name: p.name,
-        price: p.price,
-        image: p.image,
-        qty: 1,
-      });
-      router.push("/cesta");
+    async (p: Product) => {
+      try {
+        await addItem(p.id, 1);
+        // Aguarda um pouco para garantir que o carrinho foi atualizado
+        await new Promise(resolve => setTimeout(resolve, 300));
+        router.push("/cesta");
+      } catch (error: any) {
+        Alert.alert("Erro", error.message || "Não foi possível adicionar o produto ao carrinho");
+      }
     },
     [addItem, router]
   );

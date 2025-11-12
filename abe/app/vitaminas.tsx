@@ -58,20 +58,15 @@ export default function Medicamentos() {
     })();
   }, []);
 
-  const handleBuy = (p: Product) => {
-    const price = typeof p.price_cents === "number" ? p.price_cents / 100 : 0;
-
-    addItem({
-      id: p.id,
-      name: p.name,
-      price,
-      image: p.image_url
-        ? { uri: p.image_url }
-        : require("../assets/images/remedio.png"),
-      qty: 1,
-    });
-
-    router.push("/cesta");
+  const handleBuy = async (p: Product) => {
+    try {
+      await addItem(p.id, 1);
+      // Aguarda um pouco para garantir que o carrinho foi atualizado
+      await new Promise(resolve => setTimeout(resolve, 300));
+      router.push("/cesta");
+    } catch (error: any) {
+      Alert.alert("Erro", error.message || "Não foi possível adicionar o produto ao carrinho");
+    }
   };
 
   return (

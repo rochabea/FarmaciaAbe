@@ -1,20 +1,28 @@
-import React, { useState } from 'react';
-import { View, Text, Image, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
+import React from 'react';
+import { View, Text, Image, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useCart } from './context/CartContext';
+import { useAuth } from './context/AuthContext';
 
 export default function ResumoRetirada() {
   const router = useRouter();
   const params = useLocalSearchParams();
-  const [produtos, setProdutos] = useState([
-    { id: 1, nome: 'Aspirina', quantidade: 1, preco: 10.99, imagem: require('../assets/images/remedio.png') },
-    { id: 2, nome: 'Aspirina', quantidade: 1, preco: 10.99, imagem: require('../assets/images/remedio.png') },
-  ]);
+  const { items, loading, total } = useCart();
+  const { user } = useAuth();
 
   const farmaciaNome = params.farmacia ? decodeURIComponent(params.farmacia as string) : '';
   const farmaciaKm = params.km ? params.km : '0 km';
 
+  // Função para obter a imagem do produto
+  const getProductImage = (imageUrl: string | null | undefined) => {
+    if (imageUrl) {
+      return { uri: imageUrl };
+    }
+    return require('../assets/images/remedio.png');
+  };
+
   const calcularTotal = () => {
-    return produtos.reduce((total, item) => total + item.preco * item.quantidade, 0).toFixed(2);
+    return total.toFixed(2);
   };
 
   return (
@@ -51,21 +59,38 @@ export default function ResumoRetirada() {
         {/* Retirado por */}
         <View style={styles.retiradoPorRow}>
           <Text style={styles.retiradoPorLabel}>Retirado por:</Text>
-          <Text style={styles.usuarioNome}>Ana Beatriz</Text>
+          <Text style={styles.usuarioNome}>{user?.name || 'Usuário'}</Text>
         </View>
 
         {/* Produtos */}
-        <Text style={styles.produtosLabel}>Produtos:</Text>
-        {produtos.map((item) => (
-          <View key={item.id} style={styles.itemRow}>
-            <Image source={item.imagem} style={styles.itemImage} />
-            <View style={{ flex: 1 }}>
-              <Text style={styles.itemName}>{item.nome}</Text>
-              <Text style={styles.itemQuantidade}>{item.quantidade}x</Text>
-            </View>
-            <Text style={styles.itemPrice}>R$ {(item.preco * item.quantidade).toFixed(2)}</Text>
+        {loading ? (
+          <View style={{ paddingVertical: 20, alignItems: 'center' }}>
+            <ActivityIndicator size="large" color="#242760" />
+            <Text style={{ marginTop: 10, color: '#666' }}>Carregando produtos...</Text>
           </View>
-        ))}
+        ) : items.length === 0 ? (
+          <View style={{ paddingVertical: 20, alignItems: 'center' }}>
+            <Text style={{ color: '#666' }}>Nenhum produto no carrinho</Text>
+          </View>
+        ) : (
+          <>
+            <Text style={styles.produtosLabel}>Produtos:</Text>
+            {items.map((item) => (
+              <View key={item.id} style={styles.itemRow}>
+                <Image 
+                  source={getProductImage(item.image_url)} 
+                  style={styles.itemImage} 
+                  resizeMode="contain"
+                />
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.itemName}>{item.name}</Text>
+                  <Text style={styles.itemQuantidade}>{item.qty}x</Text>
+                </View>
+                <Text style={styles.itemPrice}>R$ {((item.price || 0) * (item.qty || 0)).toFixed(2)}</Text>
+              </View>
+            ))}
+          </>
+        )}
       </View>
 
       {/* Subtotal e Total */}
@@ -77,14 +102,13 @@ export default function ResumoRetirada() {
 
       {/* Botão Confirmar Retirada */}
       <TouchableOpacity 
-        style={styles.continuarBtn} 
+        style={[styles.continuarBtn, (loading || items.length === 0) && { opacity: 0.5 }]} 
+        disabled={loading || items.length === 0}
         onPress={() => {
-          const subtotal = produtos.reduce((total, item) => total + item.preco * item.quantidade, 0).toFixed(2);
-
           router.push({
             pathname: '/opcao-pagamentoR',
             params: {
-              subtotal,
+              subtotal: calcularTotal(),
               farmacia: encodeURIComponent(farmaciaNome),
               km: farmaciaKm,
             },

@@ -63,7 +63,7 @@ export default function Cesta() {
     <ScrollView contentContainerStyle={styles.container}>
       {/* Cabeçalho */}
       <View style={styles.topRect}>
-        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+        <TouchableOpacity style={styles.backButton} onPress={() => router.replace('/(tabs)/home')}>
           <Image source={require('../assets/images/seta-esquerda.png')} style={styles.backIcon} />
         </TouchableOpacity>
 
@@ -122,7 +122,7 @@ export default function Cesta() {
       {!loading && !error && items.length === 0 && (
         <View style={styles.centerContainer}>
           <Text style={styles.emptyText}>Seu carrinho está vazio</Text>
-          <TouchableOpacity onPress={() => router.push('/(tabs)/home')} style={styles.continuarBtn}>
+          <TouchableOpacity onPress={() => router.push('../(tabs)/home')} style={styles.continuarBtn}>
             <Text style={styles.continuarText}>Ver produtos</Text>
           </TouchableOpacity>
         </View>
