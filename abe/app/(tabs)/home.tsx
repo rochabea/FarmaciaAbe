@@ -70,10 +70,10 @@ export default function HomeScreen() {
   }, []);
 
   const categories = [
-    { name: "Medicamentos",              icon: require("../../assets/images/medicamentos.png"), href: "/medicamentos" },
-    { name: "Higiene",                   icon: require("../../assets/images/higiene.png"),      href: "/higiene" },
-    { name: "Vitaminas",   icon: require("../../assets/images/vitaminas.png"),    href: "/vitaminas" },
-    { name: "Beleza",                    icon: require("../../assets/images/cosmeticos.png"),   href: "/beleza" },
+    { name: "Analgésicos", icon: require("../../assets/images/medicamentos.png"), href: "/medicamentos" },
+    { name: "Higiene", icon: require("../../assets/images/higiene.png"),      href: "/higiene" },
+    { name: "Vitaminas", icon: require("../../assets/images/vitaminas.png"),    href: "/vitaminas" },
+    { name: "Beleza", icon: require("../../assets/images/cosmeticos.png"),   href: "/beleza" },
   ];
 
   return (
