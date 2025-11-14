@@ -7,14 +7,32 @@ export default function ConfirmEd() {
   const params = useLocalSearchParams();
 
   // Recebe o endereço selecionado
-  const endereco = params.endereco ? JSON.parse(params.endereco as string) : null;
+  let endereco = null;
+  try {
+    if (params.endereco) {
+      endereco = typeof params.endereco === 'string' 
+        ? JSON.parse(params.endereco) 
+        : params.endereco;
+    }
+  } catch (error) {
+    console.error('Erro ao parsear endereço:', error);
+    console.error('Parâmetro recebido:', params.endereco);
+  }
+  
   const subtotalValor = params.subtotal ? parseFloat(params.subtotal as string) : 0;
-
 
   if (!endereco) {
     return (
       <View style={styles.container}>
-        <Text style={{ textAlign: 'center', marginTop: 50 }}>Nenhum endereço selecionado</Text>
+        <Text style={{ textAlign: 'center', marginTop: 50, padding: 20 }}>
+          Nenhum endereço selecionado
+        </Text>
+        <TouchableOpacity 
+          style={[styles.button, { marginTop: 20 }]} 
+          onPress={() => router.back()}
+        >
+          <Text style={styles.buttonText}>Voltar</Text>
+        </TouchableOpacity>
       </View>
     );
   }

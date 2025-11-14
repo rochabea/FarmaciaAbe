@@ -1,10 +1,13 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, ScrollView, Image } from 'react-native';
-import { useRouter } from 'expo-router';
-import { EnderecosParams } from './parametros/Enderecos';
+import React, { useState, useContext } from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, ScrollView, Image, Alert } from 'react-native';
+import { useRouter, useLocalSearchParams } from 'expo-router';
+import { EnderecoContext } from './parametros/EnderecoContext';
 
 export default function AddEndereco() {
   const router = useRouter();
+  const params = useLocalSearchParams();
+  const { adicionarEndereco } = useContext(EnderecoContext);
+  const subtotalValor = params.subtotal ? parseFloat(params.subtotal as string) : 0;
 
   const [logradouro, setLogradouro] = useState('');
   const [numero, setNumero] = useState('');
@@ -12,20 +15,61 @@ export default function AddEndereco() {
   const [cidade, setCidade] = useState('');
   const [estado, setEstado] = useState('');
   const [bairro, setBairro] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const cadastrarEndereco = () => {
-    const novoEndereco = {
-      id: Date.now(),
-      logradouro,
-      numero,
-      cep,
-      cidade,
-      estado,
-      bairro,
-    };
+  const cadastrarEndereco = async () => {
+    // Validações básicas
+    if (!logradouro.trim() || !numero.trim() || !cep.trim() || !cidade.trim() || !estado.trim() || !bairro.trim()) {
+      Alert.alert('Erro', 'Por favor, preencha todos os campos');
+      return;
+    }
 
-    EnderecosParams.enderecos.push(novoEndereco);
-    router.back();
+    try {
+      setLoading(true);
+      
+      const novoEndereco = await adicionarEndereco({
+        logradouro: logradouro.trim(),
+        numero: numero.trim(),
+        cep: cep.trim(),
+        cidade: cidade.trim(),
+        estado: estado.trim(),
+        bairro: bairro.trim(),
+      });
+      
+      if (!novoEndereco || !novoEndereco.id) {
+        throw new Error('Endereço não foi criado corretamente');
+      }
+      
+      // Converte para o formato esperado pela tela de confirmação
+      const enderecoFormatado = {
+        id: novoEndereco.id,
+        logradouro: novoEndereco.logradouro || logradouro.trim(),
+        numero: novoEndereco.numero || numero.trim(),
+        cep: novoEndereco.cep || cep.trim(),
+        cidade: novoEndereco.cidade || cidade.trim(),
+        estado: novoEndereco.estado || estado.trim(),
+        bairro: novoEndereco.bairro || bairro.trim(),
+      };
+      
+      // Prepara os parâmetros
+      const enderecoString = JSON.stringify(enderecoFormatado);
+      const subtotalString = subtotalValor > 0 ? subtotalValor.toString() : '0';
+      
+      // Navega imediatamente para a tela de confirmação do endereço
+      router.push({
+        pathname: '/confirme-add',
+        params: {
+          endereco: enderecoString,
+          subtotal: subtotalString,
+        },
+      });
+      
+      // Não precisa setar loading como false aqui pois a navegação vai acontecer
+    } catch (error: any) {
+      console.error('Erro ao cadastrar endereço:', error);
+      setLoading(false);
+      Alert.alert('Erro', error.message || 'Não foi possível cadastrar o endereço. Tente novamente.');
+    }
   };
 
   return (
@@ -57,8 +101,14 @@ export default function AddEndereco() {
           );
         })}
 
-        <TouchableOpacity style={styles.button} onPress={cadastrarEndereco}>
-          <Text style={styles.buttonText}>Cadastrar Localização</Text>
+        <TouchableOpacity 
+          style={[styles.button, loading && { opacity: 0.6 }]} 
+          onPress={cadastrarEndereco}
+          disabled={loading}
+        >
+          <Text style={styles.buttonText}>
+            {loading ? 'Cadastrando...' : 'Cadastrar Localização'}
+          </Text>
         </TouchableOpacity>
 
       </ScrollView>

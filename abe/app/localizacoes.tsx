@@ -1,25 +1,24 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Image } from 'react-native';
-import { useRouter, useLocalSearchParams } from 'expo-router';
-import { EnderecosParams } from './parametros/Enderecos';
+import React, { useContext, useState } from 'react';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Image, ActivityIndicator, Alert } from 'react-native';
+import { useRouter } from 'expo-router';
+import { EnderecoContext } from './parametros/EnderecoContext';
 
 export default function Localizacoes() {
   const router = useRouter();
-  const params = useLocalSearchParams();
+  const { enderecos, loading, removerEndereco } = useContext(EnderecoContext);
+  const [removingId, setRemovingId] = useState<string | number | null>(null);
 
-  const [enderecos, setEnderecos] = useState([...EnderecosParams.enderecos]);
-
-  useEffect(() => {
-    if (params.novoEndereco) {
-      const endereco = JSON.parse(params.novoEndereco as string);
-      EnderecosParams.enderecos.push(endereco);
-      setEnderecos([...EnderecosParams.enderecos]);
+  const handleRemover = async (id: string | number) => {
+    try {
+      setRemovingId(id);
+      await removerEndereco(String(id));
+      Alert.alert('Sucesso', 'Endereço removido com sucesso!');
+    } catch (error: any) {
+      console.error('Erro ao remover endereço:', error);
+      Alert.alert('Erro', error.message || 'Não foi possível remover o endereço');
+    } finally {
+      setRemovingId(null);
     }
-  }, [params.novoEndereco]);
-
-  const removerEndereco = (id: number) => {
-    EnderecosParams.enderecos = EnderecosParams.enderecos.filter(e => e.id !== id);
-    setEnderecos([...EnderecosParams.enderecos]);
   };
 
   return (
@@ -47,21 +46,43 @@ export default function Localizacoes() {
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContainer}>
-        {enderecos.map((e) => (
-          <View key={e.id} style={styles.localizacaoBox}>
-            <View>
-              <Text style={styles.nomeLocalizacao}>
-                {e.logradouro} - {e.numero}
-              </Text>
-              <Text style={styles.infoLocalizacao}>
-                {e.cep} - {e.cidade}
-              </Text>
-            </View>
-            <TouchableOpacity onPress={() => removerEndereco(e.id)}>
-              <Text style={styles.removerText}>Remover</Text>
-            </TouchableOpacity>
+        {loading && enderecos.length === 0 ? (
+          <View style={{ paddingVertical: 40, alignItems: 'center' }}>
+            <ActivityIndicator size="large" color="#242760" />
+            <Text style={{ marginTop: 10, color: '#666' }}>Carregando endereços...</Text>
           </View>
-        ))}
+        ) : enderecos.length === 0 ? (
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>
+              Você ainda não possui endereços cadastrados.
+            </Text>
+            <Text style={styles.emptySubtext}>
+              Adicione um endereço para receber seus pedidos.
+            </Text>
+          </View>
+        ) : (
+          enderecos.map((e) => (
+            <View key={e.id} style={styles.localizacaoBox}>
+              <View>
+                <Text style={styles.nomeLocalizacao}>
+                  {e.logradouro} - {e.numero}
+                </Text>
+                <Text style={styles.infoLocalizacao}>
+                  {e.cep} - {e.cidade}
+                </Text>
+              </View>
+              <TouchableOpacity 
+                onPress={() => handleRemover(e.id)}
+                disabled={removingId === e.id}
+                style={removingId === e.id && { opacity: 0.6 }}
+              >
+                <Text style={styles.removerText}>
+                  {removingId === e.id ? 'Removendo...' : 'Remover'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          ))
+        )}
 
         <TouchableOpacity
           style={styles.adicionarBtn}
@@ -172,5 +193,22 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: '700',
     fontSize: 16,
+  },
+  emptyContainer: {
+    paddingVertical: 40,
+    paddingHorizontal: 20,
+    alignItems: 'center',
+  },
+  emptyText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#242760',
+    textAlign: 'center',
+    marginBottom: 10,
+  },
+  emptySubtext: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
   },
 });

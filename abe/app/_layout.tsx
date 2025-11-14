@@ -5,6 +5,7 @@ import { useColorScheme } from "@/components/useColorScheme";
 
 // IMPORTS COMO DEFAULT:
 import CartaoProvider from "./parametros/CartaoContext";
+import EnderecoProvider from "./parametros/EnderecoContext";
 import CartProvider from "./context/CartContext";
 import { AuthProvider } from "./context/AuthContext";
 
@@ -17,18 +18,20 @@ export default function RootLayout() {
   return (
     <AuthProvider>
       <CartaoProvider>
-        <CartProvider>
-          <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-            <Stack
-              screenOptions={{
-                headerShown: false,
-                contentStyle: { backgroundColor: "#FFFFFF" },
-              }}
-            >
-              <Stack.Screen name="(tabs)" />
-            </Stack>
-          </ThemeProvider>
-        </CartProvider>
+        <EnderecoProvider>
+          <CartProvider>
+            <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
+              <Stack
+                screenOptions={{
+                  headerShown: false,
+                  contentStyle: { backgroundColor: "#FFFFFF" },
+                }}
+              >
+                <Stack.Screen name="(tabs)" />
+              </Stack>
+            </ThemeProvider>
+          </CartProvider>
+        </EnderecoProvider>
       </CartaoProvider>
     </AuthProvider>
   );

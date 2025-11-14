@@ -1,23 +1,15 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Image } from 'react-native';
-import { useRouter } from 'expo-router';
-import { EnderecosParams } from './parametros/Enderecos';
-import { useLocalSearchParams } from 'expo-router';
+import React, { useState, useContext } from 'react';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Image, ActivityIndicator } from 'react-native';
+import { useRouter, useLocalSearchParams } from 'expo-router';
+import { EnderecoContext } from './parametros/EnderecoContext';
 
 export default function Entregas() {
-const params = useLocalSearchParams();
-const subtotalValor = params.subtotal ? parseFloat(params.subtotal as string) : 0;
+  const params = useLocalSearchParams();
+  const subtotalValor = params.subtotal ? parseFloat(params.subtotal as string) : 0;
   const router = useRouter();
-  const [enderecos, setEnderecos] = useState([...EnderecosParams.enderecos]);
-  const [localSelecionado, setLocalSelecionado] = useState<number | null>(null);
+  const { enderecos, loading } = useContext(EnderecoContext);
+  const [localSelecionado, setLocalSelecionado] = useState<string | number | null>(null);
 
-  useEffect(() => {
-    setEnderecos([...EnderecosParams.enderecos]);
-  }, [EnderecosParams.enderecos]);
-
-  const selecionarEndereco = (id: number) => {
-    setLocalSelecionado(id);
-  };
 
   return (
     <View style={styles.container}>
@@ -46,43 +38,68 @@ const subtotalValor = params.subtotal ? parseFloat(params.subtotal as string) : 
         </View>
 
         {/* Lista de endereços */}
-        {enderecos.map((e) => (
+        {loading ? (
+          <View style={{ paddingVertical: 40, alignItems: 'center' }}>
+            <ActivityIndicator size="large" color="#242760" />
+            <Text style={{ marginTop: 10, color: '#666' }}>Carregando endereços...</Text>
+          </View>
+        ) : enderecos.length === 0 ? (
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>
+              Você ainda não possui endereços cadastrados.
+            </Text>
+            <Text style={styles.emptySubtext}>
+              Adicione um endereço para receber seus pedidos.
+            </Text>
+          </View>
+        ) : (
+          enderecos.map((e) => (
             <View
-                key={e.id}
-                style={[
+              key={e.id}
+              style={[
                 styles.localizacaoBox,
                 localSelecionado === e.id && styles.localSelecionado,
-                ]}
+              ]}
             >
-                <View>
+              <View>
                 <Text style={styles.nomeLocalizacao}>
-                    {e.logradouro} - {e.numero}
+                  {e.logradouro} - {e.numero}
                 </Text>
                 <Text style={styles.infoLocalizacao}>
-                    {e.cep} - {e.cidade}
+                  {e.cep} - {e.cidade}
                 </Text>
-                </View>
+              </View>
 
-                <TouchableOpacity
-                onPress={() =>
-                    router.push({
-                      pathname: '/confirme-add',
-                        params: { 
-                            endereco: JSON.stringify(e),
-                            subtotal: subtotalValor.toString(),
-                         },
-                    })
-                }
-                >
+              <TouchableOpacity
+                onPress={() => {
+                  setLocalSelecionado(e.id);
+                  router.push({
+                    pathname: '/confirme-add',
+                    params: {
+                      endereco: JSON.stringify(e),
+                      subtotal: subtotalValor.toString(),
+                    },
+                  });
+                }}
+              >
                 <Text style={styles.selecionarText}>Selecionar</Text>
-                </TouchableOpacity>
+              </TouchableOpacity>
             </View>
-            ))}
+          ))
+        )}
 
 
         {/* Botões inferiores */}
         <View style={styles.bottomButtons}>
-          <TouchableOpacity style={styles.accentBtn} onPress={() => router.push('/add-endereco')}>
+          <TouchableOpacity 
+            style={styles.accentBtn} 
+            onPress={() => router.push({
+              pathname: '/add-endereco',
+              params: {
+                subtotal: subtotalValor.toString(),
+              },
+            })}
+          >
             <Text style={styles.accentBtnText}>Adicionar Endereço</Text>
           </TouchableOpacity>
 
@@ -241,5 +258,22 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: '700',
     fontSize: 16,
+  },
+  emptyContainer: {
+    paddingVertical: 40,
+    paddingHorizontal: 20,
+    alignItems: 'center',
+  },
+  emptyText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#242760',
+    textAlign: 'center',
+    marginBottom: 10,
+  },
+  emptySubtext: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
   },
 });
