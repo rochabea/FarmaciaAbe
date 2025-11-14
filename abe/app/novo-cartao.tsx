@@ -1,5 +1,5 @@
 import React, { useState, useContext } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Image, KeyboardAvoidingView } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Image, KeyboardAvoidingView, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { CartaoContext } from './parametros/CartaoContext';
 
@@ -13,9 +13,30 @@ export default function NovoCartao() {
   const [vencimento, setVencimento] = useState('');
   const [bandeira, setBandeira] = useState('');
 
-  const handleAdicionar = () => {
-    adicionarCartao({ nome, numero, codigo, vencimento, bandeira });
-    router.back();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleAdicionar = async () => {
+    // Validações básicas
+    if (!nome.trim()) {
+      setError('Nome do titular é obrigatório');
+      return;
+    }
+    if (!numero.trim() || numero.replace(/\s+/g, '').length < 13) {
+      setError('Número do cartão inválido');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+      await adicionarCartao({ nome, numero, codigo, vencimento, bandeira });
+      router.back();
+    } catch (err: any) {
+      setError(err.message || 'Erro ao adicionar cartão');
+    } finally {
+      setLoading(false);
+    }
   };
 
 
@@ -75,8 +96,20 @@ export default function NovoCartao() {
             <TextInput style={styles.input} placeholder="Digite a bandeira" value={bandeira} onChangeText={setBandeira} />
           </View>
 
-          <TouchableOpacity style={styles.button} onPress={handleAdicionar}>
-            <Text style={styles.buttonText}>Adicionar Cartão</Text>
+          {error && (
+            <View style={styles.errorContainer}>
+              <Text style={styles.errorText}>{error}</Text>
+            </View>
+          )}
+
+          <TouchableOpacity 
+            style={[styles.button, loading && { opacity: 0.6 }]} 
+            onPress={handleAdicionar}
+            disabled={loading}
+          >
+            <Text style={styles.buttonText}>
+              {loading ? 'Adicionando...' : 'Adicionar Cartão'}
+            </Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -189,5 +222,16 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 18,
     fontWeight: '700',
+  },
+  errorContainer: {
+    backgroundColor: '#ffebee',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 10,
+  },
+  errorText: {
+    color: '#c62828',
+    fontSize: 14,
+    textAlign: 'center',
   },
 });

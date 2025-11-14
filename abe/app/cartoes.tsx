@@ -1,11 +1,11 @@
-import React, { useContext, useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Image } from 'react-native';
+import React, { useContext, useState } from 'react';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Image, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { CartaoContext } from './parametros/CartaoContext';
 
 // Tipagem do Cartão
 interface Cartao {
-  id: number;
+  id: string | number;
   nome: string;
   numero: string;
   codigo?: string;
@@ -16,20 +16,24 @@ interface Cartao {
 // Tipagem do Contexto
 interface CartaoContextType {
   cartoes: Cartao[];
-  adicionarCartao?: (cartao: any) => void;
+  adicionarCartao?: (cartao: any) => void | Promise<void>;
+  removerCartao?: (id: string) => void | Promise<void>;
 }
 
 export default function Cartoes() {
   const router = useRouter();
-  const { cartoes } = useContext(CartaoContext) as CartaoContextType;
-  const [listaCartoes, setListaCartoes] = useState<Cartao[]>([]);
+  const { cartoes, removerCartao } = useContext(CartaoContext) as CartaoContextType;
+  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    setListaCartoes(cartoes);
-  }, [cartoes]);
-
-  const handleRemover = (id: number) => {
-    setListaCartoes(listaCartoes.filter(cartao => cartao.id !== id));
+  const handleRemover = async (id: string | number) => {
+    try {
+      setLoading(true);
+      await removerCartao(String(id));
+    } catch (error: any) {
+      Alert.alert('Erro', error.message || 'Não foi possível remover o cartão');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -51,18 +55,35 @@ export default function Cartoes() {
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContainer}>
-        {listaCartoes.map((cartao: Cartao) => (
-          <View key={cartao.id} style={styles.cardBox}>
-            <View>
-              <Text style={styles.nome}>{cartao.nome}</Text>
-              <Text style={styles.numero}>{cartao.numero}</Text>
-            </View>
-
-            <TouchableOpacity onPress={() => handleRemover(cartao.id)}>
-              <Text style={styles.remover}>Remover</Text>
-            </TouchableOpacity>
+        {cartoes.length === 0 ? (
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>
+              Você ainda não possui cartões cadastrados.
+            </Text>
+            <Text style={styles.emptySubtext}>
+              Adicione um cartão para facilitar suas compras.
+            </Text>
           </View>
-        ))}
+        ) : (
+          cartoes.map((cartao: Cartao) => (
+            <View key={cartao.id} style={styles.cardBox}>
+              <View>
+                <Text style={styles.nome}>{cartao.nome}</Text>
+                <Text style={styles.numero}>{cartao.numero}</Text>
+              </View>
+
+              <TouchableOpacity 
+                onPress={() => handleRemover(cartao.id)}
+                disabled={loading}
+                style={loading && { opacity: 0.6 }}
+              >
+                <Text style={styles.remover}>
+                  {loading ? 'Removendo...' : 'Remover'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          ))
+        )}
 
         <TouchableOpacity style={styles.botaoAdd} onPress={() => router.push("/novo-cartao")}>
           <Text style={styles.textoAdd}>Adicionar Cartão</Text>
@@ -171,5 +192,23 @@ const styles = StyleSheet.create({
   textoAdd:{
     color:'#fff',
     fontWeight:'700',
-    fontSize:16}
+    fontSize:16
+  },
+  emptyContainer: {
+    paddingVertical: 40,
+    paddingHorizontal: 20,
+    alignItems: 'center',
+  },
+  emptyText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#242760',
+    textAlign: 'center',
+    marginBottom: 10,
+  },
+  emptySubtext: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
+  },
 });

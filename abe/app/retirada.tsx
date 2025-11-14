@@ -67,10 +67,17 @@ export default function Retirada() {
           if (farmaciaSelecionada) {
             const farmacia = farmacias.find(f => f.id === farmaciaSelecionada);
             if (farmacia) {
-            router.push(`/dados-farm?subtotal=${subtotalValor}&farmacia=${encodeURIComponent(farmacia.nome)}&km=${encodeURIComponent(farmacia.distancia)}`
-            );
+              // Vai direto para escolher método de pagamento
+              router.push({
+                pathname: '/opcao-pagamentoR',
+                params: {
+                  subtotal: subtotalValor.toFixed(2),
+                  farmacia: encodeURIComponent(farmacia.nome),
+                  km: encodeURIComponent(farmacia.distancia),
+                },
+              });
             }
-        }
+          }
         }}
       >
         <Text style={styles.continuarText}>Continuar</Text>

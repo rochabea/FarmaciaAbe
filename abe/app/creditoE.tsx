@@ -4,7 +4,7 @@ import { useRouter } from 'expo-router';
 import { CartaoContext } from './parametros/CartaoContext';
 
 type Cartao = {
-  id: number;
+  id: string | number;
   nome: string;
   numero: string;
   codigo?: string;
@@ -15,7 +15,7 @@ type Cartao = {
 export default function Credito() {
   const router = useRouter();
   const { cartoes } = useContext(CartaoContext);
-  const [cartaoSelecionado, setCartaoSelecionado] = useState<number | null>(null);
+  const [cartaoSelecionado, setCartaoSelecionado] = useState<string | number | null>(null);
 
   const escolherCartao = (cartao: Cartao) => {
     setCartaoSelecionado(cartao.id);
@@ -39,7 +39,17 @@ export default function Credito() {
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContainer}>
-        {cartoes.map((cartao: Cartao) => (
+        {cartoes.length === 0 ? (
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>
+              Você ainda não possui cartões cadastrados.
+            </Text>
+            <Text style={styles.emptySubtext}>
+              Adicione um cartão para continuar com o pagamento.
+            </Text>
+          </View>
+        ) : (
+          cartoes.map((cartao: Cartao) => (
           <View key={cartao.id} style={[styles.cartaoBox, cartaoSelecionado === cartao.id && styles.cartaoSelecionado]}>
             <View>
               <Text style={styles.nomeCartao}>{cartao.nome}</Text>
@@ -49,7 +59,8 @@ export default function Credito() {
               <Text style={styles.escolherText}>Escolher</Text>
             </TouchableOpacity>
           </View>
-        ))}
+          ))
+        )}
 
         <TouchableOpacity style={styles.adicionarBtn} onPress={() => router.push('/novo-cartao')}>
           <Text style={styles.adicionarText}>Adicionar Cartão</Text>
@@ -176,5 +187,22 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: '700',
     fontSize: 16,
+  },
+  emptyContainer: {
+    paddingVertical: 40,
+    paddingHorizontal: 20,
+    alignItems: 'center',
+  },
+  emptyText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#242760',
+    textAlign: 'center',
+    marginBottom: 10,
+  },
+  emptySubtext: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
   },
 });
