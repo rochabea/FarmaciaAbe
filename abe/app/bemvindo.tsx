@@ -11,7 +11,7 @@ export default function Index() {
       <View style={styles.entregadorContainer}>
         <TouchableOpacity 
           style={styles.buttonEntregador} 
-          onPress={() => router.push('/login')}
+          onPress={() => router.push('/entregador/login_ent')}
         >
           <Text style={styles.entregadorText}>Entrar como Entregador</Text>
         </TouchableOpacity>
