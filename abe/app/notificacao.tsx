@@ -1,20 +1,56 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Image } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Image, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useFocusEffect } from 'expo-router';
+import { useAuth } from './context/AuthContext';
+import { generateNotifications, type Notification } from '../lib/notifications';
 
 export default function NotificacoesCliente() {
   const router = useRouter();
+  const { user, loading: authLoading } = useAuth();
+  const [notificacoes, setNotificacoes] = useState<Notification[]>([]);
+  const [loading, setLoading] = useState(true);
 
-    const [notificacoes, setNotificacoes] = useState([
-  { id: 1, texto: "Seu pedido saiu para entrega" },
-  { id: 2, texto: "Seu pedido está a caminho aguarde no local" },
-  { id: 3, texto: "Seu pedido foi cancelado com sucesso" },
-  { id: 4, texto: "Promoção exclusiva liberada para seu perfil! Acesse o app" },
-  { id: 5, texto: "Pagamento confirmado, obrigado por comprar com a gente!" },
-]);
+  const loadNotifications = useCallback(async () => {
+    if (!user) {
+      setLoading(false);
+      return;
+    }
 
-  const removerNotificacao = (id: number) => {
+    try {
+      setLoading(true);
+      const notifications = await generateNotifications();
+      setNotificacoes(notifications);
+    } catch (error: any) {
+      console.error('Erro ao carregar notificações:', error);
+      setNotificacoes([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [user]);
+
+  // Carrega notificações quando a tela é focada
+  useFocusEffect(
+    useCallback(() => {
+      loadNotifications();
+    }, [loadNotifications])
+  );
+
+  const removerNotificacao = (id: string) => {
     setNotificacoes(notificacoes.filter(n => n.id !== id));
+  };
+
+  const handleNotificationPress = (notification: Notification) => {
+    if (notification.actionUrl) {
+      if (notification.actionParams) {
+        router.push({
+          pathname: notification.actionUrl as any,
+          params: notification.actionParams,
+        });
+      } else {
+        router.push(notification.actionUrl as any);
+      }
+    }
   };
 
   return (
@@ -32,14 +68,51 @@ export default function NotificacoesCliente() {
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContainer}>
-        {notificacoes.map(n => (
-          <View key={n.id} style={styles.box}>
-            <Text style={styles.texto}>{n.texto}</Text>
-            <TouchableOpacity onPress={() => removerNotificacao(n.id)}>
-              <Text style={styles.removerText}>Remover</Text>
-            </TouchableOpacity>
+        {loading || authLoading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#242760" />
+            <Text style={styles.loadingText}>Carregando notificações...</Text>
           </View>
-        ))}
+        ) : notificacoes.length === 0 ? (
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>Nenhuma notificação</Text>
+            <Text style={styles.emptySubtext}>
+              Você não possui notificações no momento
+            </Text>
+          </View>
+        ) : (
+          notificacoes.map(n => (
+            <TouchableOpacity
+              key={n.id}
+              style={styles.box}
+              onPress={() => handleNotificationPress(n)}
+              activeOpacity={0.7}
+            >
+              <View style={styles.notificationContent}>
+                <Text style={styles.notificationTitle}>{n.title}</Text>
+                <Text style={styles.texto}>{n.message}</Text>
+                <Text style={styles.notificationDate}>
+                  {new Date(n.createdAt).toLocaleDateString('pt-BR', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })}
+                </Text>
+              </View>
+              <TouchableOpacity
+                onPress={(e) => {
+                  e.stopPropagation();
+                  removerNotificacao(n.id);
+                }}
+                style={styles.removeButton}
+              >
+                <Text style={styles.removerText}>Remover</Text>
+              </TouchableOpacity>
+            </TouchableOpacity>
+          ))
+        )}
       </ScrollView>
     </View>
   );
@@ -104,16 +177,65 @@ const styles = StyleSheet.create({
     borderRadius:12,
     padding:15,
     marginBottom:15,
-    alignItems:'center'
+    alignItems:'flex-start',
+    minHeight: 80,
+  },
+  notificationContent: {
+    flex: 1,
+    marginRight: 10,
+  },
+  notificationTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#242760',
+    marginBottom: 6,
   },
   texto:{ 
     fontSize:14, 
-    fontWeight:'600', 
-    color:'#242760', 
-    width:'75%' 
-},
+    fontWeight:'500', 
+    color: '#242760',
+    marginBottom: 6,
+    lineHeight: 20,
+  },
+  notificationDate: {
+    fontSize: 12,
+    color: '#666',
+    marginTop: 4,
+  },
+  removeButton: {
+    padding: 4,
+  },
   removerText:{ 
-    fontSize:14, 
+    fontSize:12, 
     fontWeight:'700', 
-    color:'#000' }
+    color:'#000',
+  },
+  loadingContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 60,
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 14,
+    color: '#666',
+  },
+  emptyContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 60,
+  },
+  emptyText: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#242760',
+    marginBottom: 8,
+  },
+  emptySubtext: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
+  },
 });
