@@ -5,14 +5,14 @@ import { useRouter } from 'expo-router';
 export default function Profile() {
   const router = useRouter();
 
-  const userName = 'Tom e Jerry';
+  const userName = 'Tom Jerry';
   const userAddress = 'Rua Exemplo, 123 - Cidade';
 
   // Lista de ações do perfil
   const actions = [
-    { name: 'Editar Perfil', route: '/editar_perfil', iconLeft: require('../../../assets/images/editarC.png'), iconRight: require('../../../assets/images/seta-direita.png') },
-    { name: 'Meus Pedidos', route: '/sacola', iconLeft: require('../../../assets/images/sacolaC.png'), iconRight: require('../../../assets/images/seta-direita.png') },
-    { name: 'Manipulados', route: '/manipulados/solicitacoes', iconLeft: require('../../../assets/images/vitamina.png'), iconRight: require('../../../assets/images/seta-direita.png') },
+    { name: 'Editar Perfil', route: '../editar_ent', iconLeft: require('../../../assets/images/editarC.png'), iconRight: require('../../../assets/images/seta-direita.png') },
+    { name: 'Minhas entregas', route: '/entregador/confirma', iconLeft: require('../../../assets/images/moto.png'), iconRight: require('../../../assets/images/seta-direita.png') },
+    { name: 'Veículo', route: '../veiculo', iconLeft: require('../../../assets/images/carro.png'), iconRight: require('../../../assets/images/seta-direita.png') },
     { name: 'Privacidade', route: '/privacidade', iconLeft: require('../../../assets/images/privacidade.png'), iconRight: require('../../../assets/images/seta-direita.png') },
     { name: 'Configurações', route: '/configuracao', iconLeft: require('../../../assets/images/configuracaoC.png'), iconRight: require('../../../assets/images/seta-direita.png') },
   ];

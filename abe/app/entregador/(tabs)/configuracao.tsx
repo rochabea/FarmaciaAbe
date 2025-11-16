@@ -7,11 +7,11 @@ export default function Configuracoes() {
 
   // Lista de ações da tela de configurações
   const actions = [
-    { name: 'Gerenciar Perfil', route: '/conta', iconLeft: require('../../../assets/images/perfilconf.png'), iconRight: require('../../../assets/images/seta-direita.png') },
-    { name: 'Segurança', route: '/seguranca', iconLeft: require('../../../assets/images/seguranca.png'), iconRight: require('../../../assets/images/seta-direita.png') },
-    { name: 'Endereço', route: '/localizacoes', iconLeft: require('../../../assets/images/local.png'), iconRight: require('../../../assets/images/seta-direita.png') },
-    { name: 'Cartões', route: '/cartoes', iconLeft: require('../../../assets/images/cartaoC.png'), iconRight: require('../../../assets/images/seta-direita.png') },
-    { name: 'Excluir Conta', route: '/excluir_conta', iconLeft: require('../../../assets/images/excluir.png'), iconRight: require('../../../assets/images/seta-direita.png') },
+    { name: 'Gerenciar Perfil', route: '../conta', iconLeft: require('../../../assets/images/perfilconf.png'), iconRight: require('../../../assets/images/seta-direita.png') },
+    { name: 'Segurança', route: '../seguranca_ent', iconLeft: require('../../../assets/images/seguranca.png'), iconRight: require('../../../assets/images/seta-direita.png') },
+    { name: 'Relatar problema', route: '../problema', iconLeft: require('../../../assets/images/error.png'), iconRight: require('../../../assets/images/seta-direita.png') },
+    { name: 'Carteira', route: '../carteira', iconLeft: require('../../../assets/images/cartaoC.png'), iconRight: require('../../../assets/images/seta-direita.png') },
+    { name: 'Excluir Conta', route: '../excluir_ent', iconLeft: require('../../../assets/images/excluir.png'), iconRight: require('../../../assets/images/seta-direita.png') },
   ];
 
   return (

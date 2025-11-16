@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Image, ScrollView, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Image, ScrollView, Alert, ActivityIndicator} from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuth } from './context/AuthContext';
 
@@ -31,17 +31,23 @@ export default function Login() {
     }
   };
 
+  const handleSignUp = () => {
+    router.push('/cadastro'); 
+  };
+
   return (
     <KeyboardAvoidingView style={styles.container} behavior="padding">
-      <ScrollView contentContainerStyle={styles.scrollContainer} keyboardShouldPersistTaps="handled">
-
+      <ScrollView 
+        contentContainerStyle={styles.scrollContainer} 
+        keyboardShouldPersistTaps="handled"
+      >
         <Image 
           source={require('../assets/images/logo.png')} 
           style={styles.logo} 
           resizeMode="contain" 
         />
 
-        {/*  Email */}
+        {/* Email */}
         <View style={styles.inputContainer}>
           <Text style={styles.label}>Email</Text>
           <TextInput
@@ -54,7 +60,7 @@ export default function Login() {
           />
         </View>
 
-        {/*  Senha */}
+        {/* Senha */}
         <View style={styles.inputContainer}>
           <Text style={styles.label}>Senha</Text>
           <TextInput
@@ -79,6 +85,13 @@ export default function Login() {
           )}
         </TouchableOpacity>
 
+        {/* Botão de cadastro */}
+        <TouchableOpacity 
+          style={styles.signUpButton} 
+          onPress={handleSignUp}
+        >
+          <Text style={styles.signUpText}>Não tem conta? Cadastre-se aqui</Text>
+        </TouchableOpacity>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -137,5 +150,14 @@ const styles = StyleSheet.create({
   },
   buttonDisabled: {
     opacity: 0.6,
+  },
+  signUpButton: {
+    marginTop: 15,
+  },
+  signUpText: {
+    color: '#242760',
+    fontSize: 16,
+    fontWeight: '500',
+    textDecorationLine: 'underline',
   },
 });
