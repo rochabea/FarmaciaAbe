@@ -2,7 +2,7 @@ import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Image } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 
 const NAVY = "#242760";
 const CARD = "#F3F4F6";
@@ -10,6 +10,7 @@ const GREEN = "#10B981";
 
 export default function EnviadoScreen() {
   const router = useRouter();
+  const { id } = useLocalSearchParams<{ id?: string }>();
 
   return (
     <SafeAreaView style={estilos.safe} edges={["top", "left", "right"]}>
@@ -61,7 +62,21 @@ export default function EnviadoScreen() {
         <TouchableOpacity
           style={estilos.primaryBtn}
           activeOpacity={0.9}
-          onPress={() => router.push("/manipulados/solicitacoes")}
+          onPress={() => {
+            console.log("Botão Visualizar status clicado. ID recebido:", id);
+            if (id) {
+              // Se tiver ID, vai direto para o status do pedido específico
+              console.log("Redirecionando para status com ID:", id);
+              router.push({
+                pathname: "/manipulados/status_manipulados",
+                params: { id: String(id) },
+              });
+            } else {
+              // Caso contrário, vai para a lista de solicitações
+              console.log("Sem ID, redirecionando para lista de solicitações");
+              router.push("/manipulados/solicitacoes");
+            }
+          }}
         >
           <Text style={estilos.primaryTxt}>Visualizar status</Text>
         </TouchableOpacity>

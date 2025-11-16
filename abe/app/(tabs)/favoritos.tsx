@@ -11,6 +11,7 @@ import {
   RefreshControl,
 } from "react-native";
 import { useRouter } from "expo-router";
+import { useFocusEffect } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 
 import { useFavorites } from "../context/FavoritesContext";
@@ -35,29 +36,54 @@ export default function FavoritosScreen() {
   const fetchProducts = useCallback(async () => {
     if (ids.length === 0) {
       setProducts([]);
+      setLoading(false);
       return;
     }
     setLoading(true);
-    const { data, error } = await supabase
-      .from("products")
-      .select("id, name, price, image_url")
-      .in("id", ids);
-    setLoading(false);
-    if (error) {
-      console.error(error);
-      return;
+    try {
+      const { data, error } = await supabase
+        .from("products")
+        .select("id, name, price_cents, image_url")
+        .in("id", ids);
+      
+      if (error) {
+        console.error("Erro ao buscar produtos favoritos:", error);
+        setProducts([]);
+        return;
+      }
+      
+      // Converte price_cents para price em reais
+      const productsWithPrice = (data ?? []).map((p: any) => ({
+        id: p.id,
+        name: p.name,
+        price: p.price_cents ? p.price_cents / 100 : undefined,
+        image_url: p.image_url,
+      }));
+      
+      // manter a ordem dos favoritos (created_at desc)
+      const orderMap = new Map(list.map((f, idx) => [f.product_id, idx]));
+      const ordered = productsWithPrice.sort(
+        (a, b) => (orderMap.get(a.id) ?? 0) - (orderMap.get(b.id) ?? 0)
+      );
+      setProducts(ordered as Product[]);
+    } catch (err: any) {
+      console.error("Erro ao buscar produtos:", err);
+      setProducts([]);
+    } finally {
+      setLoading(false);
     }
-    // manter a ordem dos favoritos (created_at desc)
-    const orderMap = new Map(list.map((f, idx) => [f.product_id, idx]));
-    const ordered = (data ?? []).sort(
-      (a, b) => (orderMap.get(a.id) ?? 0) - (orderMap.get(b.id) ?? 0)
-    );
-    setProducts(ordered as Product[]);
   }, [ids, list]);
 
   useEffect(() => {
     fetchProducts();
   }, [fetchProducts]);
+
+  // Recarrega quando a tela é focada
+  useFocusEffect(
+    useCallback(() => {
+      refreshFavs();
+    }, [refreshFavs])
+  );
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);

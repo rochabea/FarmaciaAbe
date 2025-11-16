@@ -1,5 +1,5 @@
 // app/(tabs)/produto/tela_produto.tsx
-import React, { useMemo, useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -9,26 +9,20 @@ import {
   TouchableOpacity,
   Pressable,
   Alert,
+  ActivityIndicator,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
-import { Ionicons } from "@expo/vector-icons"; // << novo
+import { Ionicons } from "@expo/vector-icons";
 import { useCart } from "../../context/CartContext";
-import { useFavorites } from "../../context/FavoritesContext"; // << novo (note o caminho)
+import { useFavorites } from "../../context/FavoritesContext";
+import { fetchProductById, formatPrice, type Product as ProductType } from "../../../lib/products";
 
 const NAVY = "#242760";
 const GRAY = "#6B7280";
 const TEXT = "#0B0B0B";
 const BORDER = "#E5E7EB";
 const SOFT = "#F4F4F7";
-
-type Product = {
-  id: string;
-  name: string;
-  subtitle?: string;
-  price?: number;
-  image: any; // require(...) ou {uri}
-};
 
 const money = (v?: number) =>
   typeof v === "number"
@@ -39,25 +33,48 @@ export default function TelaProduto() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { addItem } = useCart();
-  const { isFav, toggle } = useFavorites(); // << novo
+  const { isFav, toggle } = useFavorites();
   const { id } = useLocalSearchParams<{ id?: string }>();
 
-  const product: Product = useMemo(
-    () => ({
-      id: (id as string) || "aspirina",
-      name: "Aspirina Ácido Acetilsalicílico 500mg 20 comprimidos",
-      subtitle: "Para esse item não é necessário receita médica",
-      price: 19.9,
-      image: require("../../../assets/images/remedio.png"),
-    }),
-    [id]
-  );
-
+  const [product, setProduct] = useState<ProductType | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [qty, setQty] = useState(1);
   const inc = () => setQty((q) => Math.min(99, q + 1));
   const dec = () => setQty((q) => Math.max(1, q - 1));
 
+  useEffect(() => {
+    const loadProduct = async () => {
+      if (!id) {
+        setError("ID do produto não fornecido");
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        setError(null);
+        const productData = await fetchProductById(id);
+        
+        if (!productData) {
+          setError("Produto não encontrado");
+        } else {
+          setProduct(productData);
+        }
+      } catch (err: any) {
+        console.error("Erro ao carregar produto:", err);
+        setError(err.message || "Erro ao carregar produto");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadProduct();
+  }, [id]);
+
   const onBuy = async () => {
+    if (!product) return;
+    
     try {
       await addItem(product.id, qty);
       // Aguarda um pouco para garantir que o carrinho foi atualizado
@@ -68,18 +85,70 @@ export default function TelaProduto() {
     }
   };
 
-  const fav = isFav(product.id); // << novo
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.safe} edges={["top", "left", "right"]}>
+        <View style={[styles.header, { paddingTop: Math.max(8, insets.top * 0.2) }]}>
+          <TouchableOpacity
+            onPress={() => router.back()}
+            style={styles.hBtn}
+            accessibilityLabel="Voltar"
+          >
+            <Ionicons name="arrow-back" size={24} color={NAVY} />
+          </TouchableOpacity>
+        </View>
+        <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+          <ActivityIndicator size="large" color={NAVY} />
+          <Text style={{ marginTop: 10, color: GRAY }}>Carregando produto...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (error || !product) {
+    return (
+      <SafeAreaView style={styles.safe} edges={["top", "left", "right"]}>
+        <View style={[styles.header, { paddingTop: Math.max(8, insets.top * 0.2) }]}>
+          <TouchableOpacity
+            onPress={() => router.back()}
+            style={styles.hBtn}
+            accessibilityLabel="Voltar"
+          >
+            <Ionicons name="arrow-back" size={24} color={NAVY} />
+          </TouchableOpacity>
+        </View>
+        <View style={{ flex: 1, justifyContent: "center", alignItems: "center", padding: 20 }}>
+          <Text style={{ color: "crimson", fontSize: 16, fontWeight: "700", marginBottom: 10 }}>
+            Erro ao carregar produto
+          </Text>
+          <Text style={{ color: GRAY, textAlign: "center" }}>
+            {error || "Produto não encontrado"}
+          </Text>
+          <TouchableOpacity
+            style={[styles.buyBtn, { marginTop: 20 }]}
+            onPress={() => router.back()}
+          >
+            <Text style={styles.buyTxt}>Voltar</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  const fav = isFav(product.id);
+  const priceInReais = product.price_cents ? product.price_cents / 100 : 0;
+  const originalPriceInReais = product.original_price_cents ? product.original_price_cents / 100 : null;
 
   return (
     <SafeAreaView style={styles.safe} edges={["top", "left", "right"]}>
       {/* HEADER */}
       <View style={[styles.header, { paddingTop: Math.max(8, insets.top * 0.2) }]}>
         <TouchableOpacity
-          onPress={() => router.push("/cesta")}
+          onPress={() => router.back()}
           style={styles.hBtn}
-          accessibilityLabel="Abrir cesta"
+          accessibilityLabel="Voltar"
         >
-          <Image source={require("../../../assets/images/car.png")} style={styles.hIcon} />
+          <Ionicons name="arrow-back" size={24} color={NAVY} />
         </TouchableOpacity>
 
         <Image
@@ -102,7 +171,11 @@ export default function TelaProduto() {
 
         {/* Imagem com botão de favorito flutuante */}
         <View style={styles.imageWrap}>
-          <Image source={product.image} style={styles.prodImage} resizeMode="contain" />
+          {product.image_url ? (
+            <Image source={{ uri: product.image_url }} style={styles.prodImage} resizeMode="contain" />
+          ) : (
+            <Image source={require("../../../assets/images/remedio.png")} style={styles.prodImage} resizeMode="contain" />
+          )}
           <TouchableOpacity
             onPress={() => toggle(product.id)}
             style={styles.heartFloat}
@@ -118,7 +191,7 @@ export default function TelaProduto() {
         </View>
 
         <View style={{ alignItems: "center", marginTop: 10 }}>
-          {!!product.subtitle && <Text style={styles.subtitle}>{product.subtitle}</Text>}
+          <Text style={styles.subtitle}>Para esse item não é necessário receita médica</Text>
 
           <TouchableOpacity
             onPress={() => router.push("/manipulados/envio_manipulados")}
@@ -130,7 +203,16 @@ export default function TelaProduto() {
 
         {/* Preço + contador – / qty / + */}
         <View style={styles.priceQtyRow}>
-          <Text style={styles.price}>{money(product.price)}</Text>
+          {originalPriceInReais && originalPriceInReais > priceInReais ? (
+            <View>
+              <Text style={[styles.price, { textDecorationLine: "line-through", fontSize: 14, color: GRAY }]}>
+                {money(originalPriceInReais)}
+              </Text>
+              <Text style={styles.price}>{money(priceInReais)}</Text>
+            </View>
+          ) : (
+            <Text style={styles.price}>{money(priceInReais)}</Text>
+          )}
 
           <View style={styles.counter}>
             <TouchableOpacity
@@ -183,12 +265,11 @@ export default function TelaProduto() {
           <Text style={styles.descTitle}>Descrição do produto</Text>
 
           <View style={styles.descCard}>
-            <Text style={styles.descText} numberOfLines={6}>
-              Lorem ipsum dolor sit amet, Qui libero totam eos voluptatem sed id ratione.
-              Assumenda numquam consequatur molestiae sunt, dolores mollitia in! Quis velit,
-              recusandae earum eaque dignissimos aliquid aspernatur cum explicabo! At iusto
-              ratione et deserunt non suscipit. At accusantium cupiditate est nobis accusantium
-              et culpa ipsa.
+            <Text style={styles.descText}>
+              {product.name}
+              {product.is_promotion && (
+                <Text style={{ color: NAVY, fontWeight: "700" }}> - Produto em promoção!</Text>
+              )}
             </Text>
           </View>
         </View>

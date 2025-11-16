@@ -35,16 +35,38 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
       return;
     }
     setLoading(true);
-    const { data, error } = await supabase
-      .from("favorites")
-      .select("product_id, created_at")
-      .order("created_at", { ascending: false });
-    setLoading(false);
-    if (error) {
-      Alert.alert("Erro", error.message);
-      return;
+    try {
+      const { data, error } = await supabase
+        .from("favorites")
+        .select("product_id, created_at")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
+      
+      if (error) {
+        // Se a tabela não existir, retorna array vazio silenciosamente
+        if (
+          error.code === "PGRST116" ||
+          error.message?.includes("does not exist") ||
+          error.message?.includes("schema cache") ||
+          error.message?.includes("relation") ||
+          error.message?.includes("table") ||
+          error.code === "42P01"
+        ) {
+          console.warn("Tabela favorites não encontrada. Retornando array vazio.");
+          setList([]);
+        } else {
+          console.error("Erro ao buscar favoritos:", error);
+          Alert.alert("Erro", error.message);
+        }
+        return;
+      }
+      setList(data ?? []);
+    } catch (err: any) {
+      console.error("Erro ao buscar favoritos:", err);
+      setList([]);
+    } finally {
+      setLoading(false);
     }
-    setList(data ?? []);
   }, [user]);
 
   const isFav = useCallback((productId: string) => ids.has(productId), [ids]);
@@ -63,28 +85,72 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
       setList(prev => [{ product_id: productId, created_at: new Date().toISOString() }, ...prev]);
     }
 
-    if (optimisticWasFav) {
-      const { error } = await supabase
-        .from("favorites")
-        .delete()
-        .eq("product_id", productId)
-        .eq("user_id", user.id);
-      if (error) {
-        // rollback
-        setList(prev => prev); // (não precisamos mexer; o próximo refresh corrige)
-        Alert.alert("Erro", error.message);
+    try {
+      if (optimisticWasFav) {
+        // Remove dos favoritos
+        const { error } = await supabase
+          .from("favorites")
+          .delete()
+          .eq("product_id", productId)
+          .eq("user_id", user.id);
+        
+        if (error) {
+          // rollback
+          setList(prev => [...prev, { product_id: productId, created_at: new Date().toISOString() }]);
+          
+          // Se a tabela não existir, não mostra erro
+          if (
+            error.message?.includes("schema cache") ||
+            error.message?.includes("does not exist") ||
+            error.message?.includes("relation") ||
+            error.message?.includes("table") ||
+            error.code === "42P01"
+          ) {
+            console.warn("Tabela favorites não encontrada.");
+            return;
+          }
+          Alert.alert("Erro", error.message);
+        } else {
+          // Atualiza a lista após sucesso
+          await refresh();
+        }
+      } else {
+        // Adiciona aos favoritos
+        const { error } = await supabase
+          .from("favorites")
+          .insert({ product_id: productId, user_id: user.id });
+        
+        if (error) {
+          // rollback
+          setList(prev => prev.filter(f => f.product_id !== productId));
+          
+          // Se a tabela não existir, não mostra erro
+          if (
+            error.message?.includes("schema cache") ||
+            error.message?.includes("does not exist") ||
+            error.message?.includes("relation") ||
+            error.message?.includes("table") ||
+            error.code === "42P01"
+          ) {
+            console.warn("Tabela favorites não encontrada.");
+            return;
+          }
+          Alert.alert("Erro", error.message);
+        } else {
+          // Atualiza a lista após sucesso
+          await refresh();
+        }
       }
-    } else {
-      const { error } = await supabase
-        .from("favorites")
-        .insert({ product_id: productId, user_id: user.id });
-      if (error) {
-        // rollback
+    } catch (err: any) {
+      console.error("Erro ao alternar favorito:", err);
+      // Rollback em caso de erro
+      if (optimisticWasFav) {
+        setList(prev => [...prev, { product_id: productId, created_at: new Date().toISOString() }]);
+      } else {
         setList(prev => prev.filter(f => f.product_id !== productId));
-        Alert.alert("Erro", error.message);
       }
     }
-  }, [user, ids]);
+  }, [user, ids, refresh]);
 
   useEffect(() => {
     refresh();

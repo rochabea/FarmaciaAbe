@@ -1,12 +1,67 @@
-import React from 'react';
-import { View, Text, Image, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, Image, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useAuth } from '../context/AuthContext';
+import { fetchUserAddresses } from '../../lib/addresses';
 
 export default function Profile() {
   const router = useRouter();
+  const { user, loading: authLoading } = useAuth();
+  const [userAddress, setUserAddress] = useState<string>('Nenhum endereço cadastrado');
+  const [loadingAddress, setLoadingAddress] = useState(true);
 
-  const userName = 'Ana Beatriz';
-  const userAddress = 'Rua Exemplo, 123 - Cidade';
+  // Obtém o nome do usuário dos metadados ou email
+  const getUserName = () => {
+    if (!user) return 'Usuário';
+    
+    // Tenta obter o nome dos metadados
+    const fullName = user.user_metadata?.full_name || 
+                     user.user_metadata?.name ||
+                     user.user_metadata?.nome;
+    
+    if (fullName) return fullName;
+    
+    // Se não tiver nome, usa o email sem o domínio
+    if (user.email) {
+      const emailName = user.email.split('@')[0];
+      return emailName.charAt(0).toUpperCase() + emailName.slice(1);
+    }
+    
+    return 'Usuário';
+  };
+
+  const userName = getUserName();
+
+  // Busca o endereço do usuário
+  useEffect(() => {
+    const loadAddress = async () => {
+      if (!user) {
+        setLoadingAddress(false);
+        return;
+      }
+
+      try {
+        setLoadingAddress(true);
+        const addresses = await fetchUserAddresses();
+        
+        if (addresses && addresses.length > 0) {
+          // Pega o primeiro endereço (ou o principal se houver)
+          const address = addresses[0];
+          const addressString = `${address.logradouro}, ${address.numero} - ${address.bairro}, ${address.cidade} - ${address.estado}`;
+          setUserAddress(addressString);
+        } else {
+          setUserAddress('Nenhum endereço cadastrado');
+        }
+      } catch (error: any) {
+        console.error('Erro ao carregar endereço:', error);
+        setUserAddress('Erro ao carregar endereço');
+      } finally {
+        setLoadingAddress(false);
+      }
+    };
+
+    loadAddress();
+  }, [user]);
 
   // Lista de ações do perfil
   const actions = [
@@ -40,11 +95,23 @@ export default function Profile() {
       </View>
 
       {/* Nome e endereço */}
-      <Text style={styles.userName}>{userName}</Text>
-      <View style={styles.addressContainer}>
-        <Image source={require('../../assets/images/local.png')} style={styles.addressIcon} />
-        <Text style={styles.userAddress}>{userAddress}</Text>
-      </View>
+      {authLoading ? (
+        <View style={{ alignItems: 'center', marginTop: 20 }}>
+          <ActivityIndicator size="small" color="#242760" />
+        </View>
+      ) : (
+        <>
+          <Text style={styles.userName}>{userName}</Text>
+          <View style={styles.addressContainer}>
+            <Image source={require('../../assets/images/local.png')} style={styles.addressIcon} />
+            {loadingAddress ? (
+              <ActivityIndicator size="small" color="#666" />
+            ) : (
+              <Text style={styles.userAddress}>{userAddress}</Text>
+            )}
+          </View>
+        </>
+      )}
 
       {/* Lista de ações */}
       <View style={styles.actionBox}>

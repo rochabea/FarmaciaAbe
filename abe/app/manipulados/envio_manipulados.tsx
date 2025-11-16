@@ -8,11 +8,15 @@ import {
   Alert,
   Platform,
   Image,
+  TextInput,
+  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import * as DocumentPicker from "expo-document-picker";
+import { createManipulado } from "../../lib/manipulados";
+import { supabase } from "../../lib/supabase";
 
 const NAVY = "#242760";
 const TEXT = "#0B0B0B";
@@ -22,6 +26,8 @@ const CARD = "#F3F4F6";
 export default function EnvioManipulados() {
   const router = useRouter();
   const [file, setFile] = useState<DocumentPicker.DocumentPickerAsset | null>(null);
+  const [paciente, setPaciente] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const pickPdf = async () => {
     try {
@@ -37,9 +43,104 @@ export default function EnvioManipulados() {
     }
   };
 
-  const enviar = () => {
-    if (!file) return;
-    router.replace("/manipulados/analise");
+  const enviar = async () => {
+    if (!file) {
+      Alert.alert("Atenção", "Por favor, selecione um arquivo PDF.");
+      return;
+    }
+
+    if (!paciente.trim()) {
+      Alert.alert("Atenção", "Por favor, informe o nome do paciente.");
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      // Tenta fazer upload do arquivo para o Supabase Storage (opcional)
+      let fileUrl = file.uri || "";
+      
+      try {
+        const fileExt = file.name?.split('.').pop() || 'pdf';
+        const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+        const filePath = `manipulados/${fileName}`;
+
+        if (file.uri) {
+          const response = await fetch(file.uri);
+          const blob = await response.blob();
+
+          const { data: uploadData, error: uploadError } = await supabase.storage
+            .from('manipulados')
+            .upload(filePath, blob, {
+              contentType: 'application/pdf',
+              upsert: false
+            });
+
+          if (!uploadError && uploadData) {
+            const { data: urlData } = supabase.storage
+              .from('manipulados')
+              .getPublicUrl(filePath);
+            fileUrl = urlData.publicUrl;
+          }
+        }
+      } catch (storageError: any) {
+        // Se o storage não estiver configurado, usa a URI local
+        console.warn("Storage não disponível, usando URI local:", storageError);
+        fileUrl = file.uri || "";
+      }
+
+      // Cria o pedido de manipulados no banco de dados
+      console.log("Criando pedido de manipulados...");
+      const manipulado = await createManipulado({
+        paciente: paciente.trim(),
+        file_url: fileUrl,
+        file_name: file.name || "receita.pdf",
+      });
+
+      console.log("Pedido criado com sucesso:", manipulado.id);
+
+      // Redireciona para a tela de análise com o ID do manipulado criado
+      router.replace({
+        pathname: "/manipulados/analise",
+        params: { id: manipulado.id },
+      });
+    } catch (error: any) {
+      console.error("Erro ao enviar manipulado:", error);
+      console.error("Detalhes do erro:", JSON.stringify(error, null, 2));
+      
+      // Se o erro for sobre tabela não existir, mostra mensagem clara
+      if (
+        error.message?.includes("schema cache") ||
+        error.message?.includes("does not exist") ||
+        error.message?.includes("relation") ||
+        error.message?.includes("table") ||
+        error.code === "42P01"
+      ) {
+        Alert.alert(
+          "Funcionalidade não configurada",
+          "A tabela de manipulados não existe no banco de dados. Por favor, crie a tabela 'manipulados' no Supabase para usar esta funcionalidade.",
+          [
+            {
+              text: "OK",
+              onPress: () => router.back(),
+            }
+          ]
+        );
+      } else {
+        Alert.alert(
+          "Erro ao enviar pedido",
+          error.message || "Não foi possível enviar o pedido. Tente novamente.",
+          [
+            {
+              text: "OK",
+              onPress: () => {},
+            }
+          ]
+        );
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -78,6 +179,18 @@ export default function EnvioManipulados() {
         Envie a receita deve estar em uma{"\n"}superfície plana com informações nítidas e{"\n"}sem outros itens por cima.
       </Text>
 
+      {/* Campo de nome do paciente */}
+      <View style={estilos.inputContainer}>
+        <Text style={estilos.inputLabel}>Nome do Paciente</Text>
+        <TextInput
+          style={estilos.input}
+          placeholder="Digite o nome do paciente"
+          placeholderTextColor={MUTED}
+          value={paciente}
+          onChangeText={setPaciente}
+        />
+      </View>
+
       {/* Linha de anexo */}
       <TouchableOpacity style={estilos.attachment} activeOpacity={0.8} onPress={pickPdf}>
         <View style={estilos.attachmentLeft}>
@@ -93,12 +206,16 @@ export default function EnvioManipulados() {
 
       {/* Botão enviar */}
       <TouchableOpacity
-        style={[estilos.primaryBtn, !file && { opacity: 0.5 }]}
+        style={[estilos.primaryBtn, (!file || !paciente.trim() || loading) && { opacity: 0.5 }]}
         activeOpacity={0.9}
         onPress={enviar}
-        disabled={!file}
+        disabled={!file || !paciente.trim() || loading}
       >
-        <Text style={estilos.primaryTxt}>Enviar</Text>
+        {loading ? (
+          <ActivityIndicator color="#fff" />
+        ) : (
+          <Text style={estilos.primaryTxt}>Enviar</Text>
+        )}
       </TouchableOpacity>
     </SafeAreaView>
   );
@@ -168,6 +285,26 @@ const estilos = StyleSheet.create({
   attachmentLeft: { flexDirection: "row", alignItems: "center", gap: 8 },
   attachmentText: { fontSize: 14, color: TEXT, fontWeight: "600" },
 
+  inputContainer: {
+    marginTop: 18,
+    marginHorizontal: 16,
+  },
+  inputLabel: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: TEXT,
+    marginBottom: 8,
+  },
+  input: {
+    backgroundColor: CARD,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    fontSize: 14,
+    color: TEXT,
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+  },
   primaryBtn: {
     marginTop: 20,
     alignSelf: "center",

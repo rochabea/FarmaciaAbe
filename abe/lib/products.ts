@@ -87,6 +87,50 @@ export function calculateDiscountPercent(originalPrice: number, currentPrice: nu
 }
 
 /**
+ * Busca um produto específico por ID
+ */
+export async function fetchProductById(id: string): Promise<Product | null> {
+  const { data, error } = await supabase
+    .from("products")
+    .select("id, name, price_cents, original_price_cents, is_promotion, discount_percent, image_url, created_at")
+    .eq("id", id)
+    .single();
+
+  if (error) {
+    if (error.code === "PGRST116") {
+      // Nenhum resultado encontrado
+      return null;
+    }
+    console.error("Erro ao buscar produto:", error);
+    throw error;
+  }
+
+  return data as Product;
+}
+
+/**
+ * Busca produtos por termo de pesquisa (busca no nome do produto)
+ */
+export async function searchProducts(searchTerm: string): Promise<Product[]> {
+  if (!searchTerm || searchTerm.trim() === "") {
+    return [];
+  }
+
+  const { data, error } = await supabase
+    .from("products")
+    .select("id, name, price_cents, original_price_cents, is_promotion, discount_percent, image_url, created_at")
+    .ilike("name", `%${searchTerm.trim()}%`)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("Erro ao buscar produtos:", error);
+    throw error;
+  }
+
+  return (data || []) as Product[];
+}
+
+/**
  * Formata preço em centavos para string R$ X,XX
  */
 export function formatPrice(priceCents: number | null | undefined): string {
