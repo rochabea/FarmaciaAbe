@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, Image, Clipboard } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import { createOrder } from '../lib/orders';
+import { useCart } from './context/CartContext';
 
 export default function Pix() {
   const router = useRouter();
   const params = useLocalSearchParams();
+  const { refresh } = useCart();
 
   const [subtotalValor, setSubtotalValor] = useState(0);
   const [codigoPix, setCodigoPix] = useState('1234-5678-9012');
@@ -22,7 +25,19 @@ export default function Pix() {
     Clipboard.setString(codigoPix);
     alert('Código PIX copiado!');
 
-    // Redirecionar para a tela "Compra Realizada" após 5 segundos
+    // Cria o pedido em background (não bloqueia o redirecionamento)
+    const totalCents = Math.round(subtotalValor * 100);
+    createOrder(totalCents, 'entrega')
+      .then(() => {
+        // Atualiza o contexto do carrinho após criar o pedido
+        refresh().catch(err => console.error('Erro ao atualizar carrinho:', err));
+      })
+      .catch(error => {
+        console.error('Erro ao criar pedido:', error);
+        // Não mostra erro para o usuário, apenas loga
+      });
+
+    // Redirecionar para a tela "Compra Realizada" após 2 segundos (como estava antes)
     setTimeout(() => {
       router.push('/compra-realizadaE');
     }, 2000);

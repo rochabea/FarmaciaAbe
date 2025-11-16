@@ -39,6 +39,7 @@ export async function fetchUserOrders(): Promise<Order[]> {
       created_at,
       status,
       total_cents,
+      delivery_type,
       order_items (
         id,
         product_id,
@@ -112,13 +113,20 @@ export async function createOrder(
   }
 
   // Cria o pedido
+  const orderData: any = {
+    user_id: user.id,
+    total_cents: totalCents,
+    status: "pendente",
+  };
+  
+  // Adiciona o tipo de entrega se fornecido
+  if (deliveryType) {
+    orderData.delivery_type = deliveryType;
+  }
+  
   const { data: order, error: orderError } = await supabase
     .from("orders")
-    .insert({
-      user_id: user.id,
-      total_cents: totalCents,
-      status: "pendente",
-    })
+    .insert(orderData)
     .select("id")
     .single();
 

@@ -4,15 +4,8 @@ import {
   ScrollView, ActivityIndicator, Alert,
 } from "react-native";
 import { useRouter } from "expo-router";
-import { supabase } from "../lib/supabase";
 import { useCart } from "./context/CartContext";
-
-type Product = {
-  id: string;
-  name: string;
-  price_cents: number | null;
-  image_url?: string | null;
-};
+import { fetchProductsByCategory, formatPrice, Product } from "../lib/products";
 
 const NAVY = "#242760";
 
@@ -29,18 +22,8 @@ export default function Medicamentos() {
       try {
         setErrorMsg(null);
         setLoading(true);
-        const { data, error } = await supabase
-          .from("products")
-          .select("id, name, price_cents, image_url, categories!inner(name), created_at")
-          .eq("categories.name", "Beleza e Cosméticos")
-          .order("created_at", { ascending: false })
-          .limit(50);
-
-        if (error) throw new Error(error.message);
-
-        const rows = (data ?? []) as any[];
-        const unique = Array.from(new Map(rows.map((r) => [r.id, r])).values());
-        setItems(unique as Product[]);
+        const products = await fetchProductsByCategory("Beleza e Cosméticos", 50);
+        setItems(products);
       } catch (e: any) {
         setErrorMsg(e.message || "Falha ao carregar produtos");
       } finally {
@@ -49,7 +32,8 @@ export default function Medicamentos() {
     })();
   }, []);
 
-  const handleBuy = async (p: Product) => {
+  const handleBuy = async (p: Product, e?: any) => {
+    if (e) e.stopPropagation();
     try {
       await addItem(p.id, 1);
       await new Promise((resolve) => setTimeout(resolve, 300));
@@ -110,7 +94,7 @@ export default function Medicamentos() {
             <ProductCard
               key={item.id}
               item={item}
-              onBuy={() => handleBuy(item)}
+              onBuy={(e) => handleBuy(item, e)}
               onOpen={() => handleOpen(item.id)}
             />
           ))}
@@ -129,21 +113,24 @@ const ProductCard = memo(function ProductCard({
   onOpen,
 }: {
   item: Product;
-  onBuy: () => void;
+  onBuy: (e?: any) => void;
   onOpen: () => void;
 }) {
-  const priceStr = useMemo(() => {
-    if (typeof item.price_cents !== "number") return null;
-    return (item.price_cents / 100).toLocaleString("pt-BR", {
-      style: "currency",
-      currency: "BRL",
-      minimumFractionDigits: 2,
-    });
-  }, [item.price_cents]);
+  const originalPrice = item.original_price_cents || item.price_cents || 0;
+  const currentPrice = item.price_cents || 0;
+  const discountPercent = item.discount_percent || 
+    (originalPrice > currentPrice ? Math.round(((originalPrice - currentPrice) / originalPrice) * 100) : 0);
+  const isPromotion = item.is_promotion && originalPrice > currentPrice;
 
   return (
-    // card inteiro clicável abre a tela do produto
     <TouchableOpacity style={styles.card} activeOpacity={0.9} onPress={onOpen}>
+      {/* Badge de promoção */}
+      {isPromotion && discountPercent > 0 && (
+        <View style={styles.promotionBadge}>
+          <Text style={styles.promotionBadgeText}>-{discountPercent}%</Text>
+        </View>
+      )}
+
       <View style={styles.imageWrap}>
         {item.image_url ? (
           <Image source={{ uri: item.image_url }} style={styles.cardImg} />
@@ -152,22 +139,29 @@ const ProductCard = memo(function ProductCard({
         )}
       </View>
 
-      <Text numberOfLines={1} style={styles.cardTitle}>
+      <Text numberOfLines={2} style={styles.cardTitle}>
         {item.name}
       </Text>
 
-      <Text style={styles.cardSub}>
-        {priceStr ? (
-          <>
-            Oferta por <Text style={styles.cardPrice}>{priceStr}</Text>
-          </>
-        ) : (
-          "Preço indisponível"
-        )}
-      </Text>
+      {isPromotion ? (
+        <>
+          <Text style={styles.cardSub}>
+            De <Text style={styles.originalPrice}>{formatPrice(originalPrice)}</Text> por
+          </Text>
+          <Text style={styles.cardPrice}>{formatPrice(currentPrice)}</Text>
+        </>
+      ) : (
+        <Text style={styles.cardSub}>
+          Oferta por <Text style={styles.cardPrice}>{formatPrice(currentPrice)}</Text>
+        </Text>
+      )}
 
-      {/* Botão Comprar mantém a ação atual */}
-      <TouchableOpacity style={styles.buyBtn} activeOpacity={0.9} onPress={onBuy}>
+      {/* Botão Comprar */}
+      <TouchableOpacity 
+        style={styles.buyBtn} 
+        activeOpacity={0.9} 
+        onPress={(e) => onBuy(e)}
+      >
         <Text style={styles.buyTxt}>Comprar</Text>
       </TouchableOpacity>
     </TouchableOpacity>
@@ -231,6 +225,22 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.08,
     shadowRadius: 8,
     shadowOffset: { width: 0, height: 2 },
+    position: "relative",
+  },
+  promotionBadge: {
+    position: "absolute",
+    top: 8,
+    right: 8,
+    backgroundColor: "#FF4444",
+    borderRadius: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    zIndex: 10,
+  },
+  promotionBadgeText: {
+    color: "#fff",
+    fontSize: 12,
+    fontWeight: "700",
   },
   imageWrap: {
     borderRadius: 12,
@@ -245,9 +255,10 @@ const styles = StyleSheet.create({
     alignSelf: "center",
   },
   cardImg: { width: 110, height: 160, resizeMode: "cover" },
-  cardTitle: { fontSize: 14, fontWeight: "600", color: "#2B3A8A", marginBottom: 4 },
-  cardSub: { fontSize: 14, color: "#111", marginBottom: 10 },
-  cardPrice: { fontWeight: "700", color: "#111" },
+  cardTitle: { fontSize: 14, fontWeight: "600", color: "#2B3A8A", marginBottom: 4, minHeight: 36 },
+  cardSub: { fontSize: 14, color: "#111", marginBottom: 4 },
+  originalPrice: { textDecorationLine: "line-through", color: "#999", fontSize: 12 },
+  cardPrice: { fontWeight: "700", color: "#111", fontSize: 16 },
   buyBtn: {
     alignSelf: "center",
     paddingVertical: 10,

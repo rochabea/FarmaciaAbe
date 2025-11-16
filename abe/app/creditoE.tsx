@@ -1,7 +1,9 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Image } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { CartaoContext } from './parametros/CartaoContext';
+import { createOrder } from '../lib/orders';
+import { useCart } from './context/CartContext';
 
 type Cartao = {
   id: string | number;
@@ -14,12 +16,38 @@ type Cartao = {
 
 export default function Credito() {
   const router = useRouter();
+  const params = useLocalSearchParams();
   const { cartoes } = useContext(CartaoContext);
+  const { refresh } = useCart();
   const [cartaoSelecionado, setCartaoSelecionado] = useState<string | number | null>(null);
+  const [subtotalValor, setSubtotalValor] = useState(0);
+
+  useEffect(() => {
+    if (params?.subtotal) {
+      const valorConvertido = parseFloat(String(params.subtotal));
+      if (!isNaN(valorConvertido)) {
+        setSubtotalValor(valorConvertido);
+      }
+    }
+  }, [params]);
 
   const escolherCartao = (cartao: Cartao) => {
     setCartaoSelecionado(cartao.id);
-    router.push('/compra-realizadaE'); 
+    
+    // Redireciona imediatamente (como estava antes)
+    router.push('/compra-realizadaE');
+    
+    // Cria o pedido em background (não bloqueia o redirecionamento)
+    const totalCents = Math.round(subtotalValor * 100);
+    createOrder(totalCents, 'entrega')
+      .then(() => {
+        // Atualiza o contexto do carrinho após criar o pedido
+        refresh().catch(err => console.error('Erro ao atualizar carrinho:', err));
+      })
+      .catch(error => {
+        console.error('Erro ao criar pedido:', error);
+        // Não mostra erro para o usuário, apenas loga
+      });
   };
 
   return (

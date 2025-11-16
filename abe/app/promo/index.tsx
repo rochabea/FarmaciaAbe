@@ -1,31 +1,40 @@
 // app/promo/index.tsx
-import React, { memo, useCallback, useState } from "react";
+import React, { memo, useCallback, useState, useEffect } from "react";
 import {
   View, Text, Image, StyleSheet, TouchableOpacity,
-  ScrollView, Alert,
+  ScrollView, Alert, ActivityIndicator,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { useCart } from "../context/CartContext";
-
-type Product = { id: string; name: string; price: number; image: any };
-
-const DATA: Product[] = [
-  { id: "1", name: "Aspirina",    price: 10.99, image: require("../../assets/images/remedio.png") },
-  { id: "2", name: "Paracetamol", price: 10.99, image: require("../../assets/images/remedio.png") },
-  { id: "3", name: "Ibuprofeno",  price: 10.99, image: require("../../assets/images/remedio.png") },
-  { id: "4", name: "Vitamina C",  price: 10.99, image: require("../../assets/images/remedio.png") },
-  { id: "5", name: "Aspirina",    price: 10.99, image: require("../../assets/images/remedio.png") },
-  { id: "6", name: "Paracetamol", price: 10.99, image: require("../../assets/images/remedio.png") },
-  { id: "7", name: "Ibuprofeno",  price: 10.99, image: require("../../assets/images/remedio.png") },
-  { id: "8", name: "Vitamina C",  price: 10.99, image: require("../../assets/images/remedio.png") },
-];
+import { fetchPromotionProducts, formatPrice, Product } from "../../lib/products";
 
 const NAVY = "#242760";
 
 export default function Promocoes() {
   const router = useRouter();
   const { addItem } = useCart();
-  const [itens] = useState(DATA);
+  const [items, setItems] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  useEffect(() => {
+    loadPromotions();
+  }, []);
+
+  const loadPromotions = async () => {
+    try {
+      setLoading(true);
+      setErrorMsg(null);
+      const products = await fetchPromotionProducts();
+      setItems(products);
+    } catch (error: any) {
+      console.error("Erro ao carregar promoções:", error);
+      setErrorMsg(error.message || "Não foi possível carregar as promoções");
+      setItems([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleBuy = useCallback(
     async (p: Product) => {
@@ -33,7 +42,7 @@ export default function Promocoes() {
         await addItem(p.id, 1);
         // pequeno delay pra garantir atualização do contexto
         await new Promise((r) => setTimeout(r, 250));
-        router.push("/cesta"); // <- abre o carrinho
+        router.push("/cesta");
       } catch (error: any) {
         Alert.alert("Erro", error.message || "Não foi possível adicionar o produto ao carrinho");
       }
@@ -69,17 +78,35 @@ export default function Promocoes() {
 
       <View style={{ height: 80 }} />
 
-      {/* Grid */}
-      <View style={styles.grid}>
-        {itens.map((item) => (
-          <ProductCard
-            key={item.id}
-            item={item}
-            onBuy={() => handleBuy(item)}          // comprar -> carrinho
-            onOpen={() => handleOpen(item.id)}     // card -> produto
-          />
-        ))}
-      </View>
+      {/* Conteúdo */}
+      {loading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={NAVY} />
+          <Text style={styles.loadingText}>Carregando promoções...</Text>
+        </View>
+      ) : errorMsg ? (
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>Erro: {errorMsg}</Text>
+          <TouchableOpacity style={styles.retryButton} onPress={loadPromotions}>
+            <Text style={styles.retryText}>Tentar Novamente</Text>
+          </TouchableOpacity>
+        </View>
+      ) : items.length === 0 ? (
+        <View style={styles.emptyContainer}>
+          <Text style={styles.emptyText}>Nenhuma promoção disponível no momento.</Text>
+        </View>
+      ) : (
+        <View style={styles.grid}>
+          {items.map((item) => (
+            <ProductCard
+              key={item.id}
+              item={item}
+              onBuy={() => handleBuy(item)}
+              onOpen={() => handleOpen(item.id)}
+            />
+          ))}
+        </View>
+      )}
 
       <View style={{ height: 40 }} />
     </ScrollView>
@@ -97,8 +124,14 @@ const ProductCard = memo(function ProductCard({
 }) {
   const [busy, setBusy] = useState(false);
 
+  const originalPrice = item.original_price_cents || item.price_cents || 0;
+  const currentPrice = item.price_cents || 0;
+  const discountPercent = item.discount_percent || 
+    (originalPrice > currentPrice ? Math.round(((originalPrice - currentPrice) / originalPrice) * 100) : 0);
+
   // impede cliques duplos e evita "propagar" pro toque do card
-  const handleBuyClick = async () => {
+  const handleBuyClick = async (e: any) => {
+    e.stopPropagation();
     if (busy) return;
     setBusy(true);
     try {
@@ -111,18 +144,35 @@ const ProductCard = memo(function ProductCard({
   return (
     // Card inteiro abre a tela do produto
     <TouchableOpacity style={styles.card} activeOpacity={0.9} onPress={onOpen}>
+      {/* Badge de promoção */}
+      {item.is_promotion && discountPercent > 0 && (
+        <View style={styles.promotionBadge}>
+          <Text style={styles.promotionBadgeText}>-{discountPercent}%</Text>
+        </View>
+      )}
+
       <View style={styles.imageWrap}>
-        <Image source={item.image} style={styles.cardImg} resizeMode="contain" />
+        {item.image_url ? (
+          <Image source={{ uri: item.image_url }} style={styles.cardImg} resizeMode="contain" />
+        ) : (
+          <Image source={require("../../assets/images/remedio.png")} style={styles.cardImg} resizeMode="contain" />
+        )}
       </View>
 
-      <Text numberOfLines={1} style={styles.cardTitle}>
+      <Text numberOfLines={2} style={styles.cardTitle}>
         {item.name}
       </Text>
 
-      <Text style={styles.cardSub}>De R$ 10,99 por</Text>
-      <Text style={styles.cardPrice}>{item.price.toFixed(2).replace(".", ",")}</Text>
+      {item.is_promotion && originalPrice > currentPrice ? (
+        <>
+          <Text style={styles.cardSub}>De {formatPrice(originalPrice)} por</Text>
+          <Text style={styles.cardPrice}>{formatPrice(currentPrice)}</Text>
+        </>
+      ) : (
+        <Text style={styles.cardPrice}>{formatPrice(currentPrice)}</Text>
+      )}
 
-      {/* Botão Comprar (não “vaza” pro onPress do card) */}
+      {/* Botão Comprar (não "vaza" pro onPress do card) */}
       <TouchableOpacity
         style={[styles.buyBtn, busy && { opacity: 0.6 }]}
         activeOpacity={0.9}
@@ -158,8 +208,23 @@ const styles = StyleSheet.create({
   card: {
     width: "48%", backgroundColor: "#fff", borderRadius: 14,
     paddingHorizontal: 12, paddingTop: 12, paddingBottom: 10,
-    marginBottom: 16, elevation: 3,
+    marginBottom: 16, elevation: 3, position: "relative",
     shadowColor: "#000", shadowOpacity: 0.08, shadowRadius: 8, shadowOffset: { width: 0, height: 2 },
+  },
+  promotionBadge: {
+    position: "absolute",
+    top: 8,
+    right: 8,
+    backgroundColor: "#FF4444",
+    borderRadius: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    zIndex: 10,
+  },
+  promotionBadgeText: {
+    color: "#fff",
+    fontSize: 12,
+    fontWeight: "700",
   },
   imageWrap: {
     borderRadius: 12, overflow: "hidden", backgroundColor: "#fff", elevation: 2,
@@ -167,12 +232,56 @@ const styles = StyleSheet.create({
     marginBottom: 8, alignSelf: "center",
   },
   cardImg: { width: 96, height: 96, resizeMode: "contain" },
-  cardTitle: { fontSize: 14, fontWeight: "600", color: NAVY, textDecorationLine: "underline" },
-  cardSub: { fontSize: 12, color: "#6B6B6B", marginTop: 6 },
-  cardPrice: { fontSize: 14, color: NAVY, fontWeight: "700" },
+  cardTitle: { fontSize: 14, fontWeight: "600", color: NAVY, marginBottom: 4, minHeight: 36 },
+  cardSub: { fontSize: 12, color: "#6B6B6B", marginTop: 6, textDecorationLine: "line-through" },
+  cardPrice: { fontSize: 14, color: NAVY, fontWeight: "700", marginTop: 2 },
   buyBtn: {
     alignSelf: "flex-start", paddingVertical: 10, paddingHorizontal: 18,
     backgroundColor: NAVY, borderRadius: 12, marginTop: 8,
   },
   buyTxt: { color: "#fff", fontWeight: "600", fontSize: 14 },
+  loadingContainer: {
+    paddingVertical: 40,
+    alignItems: "center",
+    width: "90%",
+  },
+  loadingText: {
+    marginTop: 10,
+    color: "#666",
+    fontSize: 14,
+  },
+  errorContainer: {
+    paddingVertical: 40,
+    paddingHorizontal: 20,
+    alignItems: "center",
+    width: "90%",
+  },
+  errorText: {
+    fontSize: 14,
+    color: "#FF4444",
+    textAlign: "center",
+    marginBottom: 15,
+  },
+  retryButton: {
+    backgroundColor: NAVY,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+  },
+  retryText: {
+    color: "#fff",
+    fontWeight: "600",
+    fontSize: 14,
+  },
+  emptyContainer: {
+    paddingVertical: 40,
+    paddingHorizontal: 20,
+    alignItems: "center",
+    width: "90%",
+  },
+  emptyText: {
+    fontSize: 16,
+    color: "#666",
+    textAlign: "center",
+  },
 });
