@@ -40,31 +40,16 @@ export default function AddEndereco() {
         throw new Error('Endereço não foi criado corretamente');
       }
       
-      // Converte para o formato esperado pela tela de confirmação
-      const enderecoFormatado = {
-        id: novoEndereco.id,
-        logradouro: novoEndereco.logradouro || logradouro.trim(),
-        numero: novoEndereco.numero || numero.trim(),
-        cep: novoEndereco.cep || cep.trim(),
-        cidade: novoEndereco.cidade || cidade.trim(),
-        estado: novoEndereco.estado || estado.trim(),
-        bairro: novoEndereco.bairro || bairro.trim(),
-      };
+      setLoading(false);
       
-      // Prepara os parâmetros
-      const enderecoString = JSON.stringify(enderecoFormatado);
+      // Navega de volta para a tela de endereços para que o usuário possa selecionar
       const subtotalString = subtotalValor > 0 ? subtotalValor.toString() : '0';
-      
-      // Navega imediatamente para a tela de confirmação do endereço
       router.push({
-        pathname: '/confirme-add',
+        pathname: '/entrega',
         params: {
-          endereco: enderecoString,
           subtotal: subtotalString,
         },
       });
-      
-      // Não precisa setar loading como false aqui pois a navegação vai acontecer
     } catch (error: any) {
       console.error('Erro ao cadastrar endereço:', error);
       setLoading(false);

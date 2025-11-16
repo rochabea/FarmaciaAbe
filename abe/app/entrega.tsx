@@ -74,9 +74,8 @@ export default function Entregas() {
                 onPress={() => {
                   setLocalSelecionado(e.id);
                   router.push({
-                    pathname: '/confirme-add',
+                    pathname: '/opcao-pagamentoE',
                     params: {
-                      endereco: JSON.stringify(e),
                       subtotal: subtotalValor.toString(),
                     },
                   });
