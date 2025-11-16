@@ -31,23 +31,23 @@ export default function Credito() {
     }
   }, [params]);
 
-  const escolherCartao = (cartao: Cartao) => {
+  const escolherCartao = async (cartao: Cartao) => {
     setCartaoSelecionado(cartao.id);
     
-    // Redireciona imediatamente (como estava antes)
-    router.push('/compra-realizadaE');
-    
-    // Cria o pedido em background (não bloqueia o redirecionamento)
-    const totalCents = Math.round(subtotalValor * 100);
-    createOrder(totalCents, 'entrega')
-      .then(() => {
-        // Atualiza o contexto do carrinho após criar o pedido
-        refresh().catch(err => console.error('Erro ao atualizar carrinho:', err));
-      })
-      .catch(error => {
-        console.error('Erro ao criar pedido:', error);
-        // Não mostra erro para o usuário, apenas loga
-      });
+    try {
+      // Cria o pedido antes de redirecionar
+      const totalCents = Math.round(subtotalValor * 100);
+      await createOrder(totalCents, 'entrega');
+      
+      // Atualiza o contexto do carrinho após criar o pedido
+      await refresh();
+      
+      // Redireciona após criar o pedido com sucesso
+      router.push('/compra-realizadaE');
+    } catch (error: any) {
+      console.error('Erro ao criar pedido:', error);
+      alert(`Erro ao finalizar pedido: ${error.message || 'Erro desconhecido'}`);
+    }
   };
 
   return (

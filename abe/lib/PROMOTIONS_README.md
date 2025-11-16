@@ -99,3 +99,4 @@ WHERE name LIKE '%Aspirina%';
 - **Preço Original**: Texto riscado em cinza
 - **Preço Promocional**: Texto em negrito e cor destacada
 
+

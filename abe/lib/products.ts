@@ -94,3 +94,4 @@ export function formatPrice(priceCents: number | null | undefined): string {
   return `R$ ${(priceCents / 100).toFixed(2).replace(".", ",")}`;
 }
 
+

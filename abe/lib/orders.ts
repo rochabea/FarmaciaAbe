@@ -39,7 +39,6 @@ export async function fetchUserOrders(): Promise<Order[]> {
       created_at,
       status,
       total_cents,
-      delivery_type,
       order_items (
         id,
         product_id,
@@ -119,10 +118,8 @@ export async function createOrder(
     status: "pendente",
   };
   
-  // Adiciona o tipo de entrega se fornecido
-  if (deliveryType) {
-    orderData.delivery_type = deliveryType;
-  }
+  // Nota: delivery_type foi removido pois a coluna não existe na tabela orders
+  // Se precisar dessa informação no futuro, adicione a coluna no banco de dados primeiro
   
   const { data: order, error: orderError } = await supabase
     .from("orders")
@@ -134,11 +131,18 @@ export async function createOrder(
   if (!order) throw new Error("Erro ao criar pedido.");
 
   // Cria os itens do pedido
-  const orderItemsData = cartItems.map((item) => ({
-    order_id: order.id,
-    product_id: item.product_id,
-    quantity: item.quantity,
-  }));
+  const orderItemsData = cartItems.map((item) => {
+    const priceCents = item.products?.price_cents;
+    if (!priceCents) {
+      throw new Error(`Preço não encontrado para o produto ${item.product_id}`);
+    }
+    return {
+      order_id: order.id,
+      product_id: item.product_id,
+      quantity: item.quantity,
+      price_cents: priceCents,
+    };
+  });
 
   const { error: orderItemsError } = await supabase
     .from("order_items")

@@ -90,3 +90,4 @@ Quando o usuário seleciona "Retirada" como forma de entrega:
 - O campo `distancia` é opcional
 - Para desativar uma farmácia, use `updatePharmacy(id, { ativo: false })` ao invés de deletar
 
+

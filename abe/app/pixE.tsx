@@ -21,26 +21,26 @@ export default function Pix() {
     }
   }, [params]);
 
-  const copiarCodigo = () => {
+  const copiarCodigo = async () => {
     Clipboard.setString(codigoPix);
     alert('Código PIX copiado!');
 
-    // Cria o pedido em background (não bloqueia o redirecionamento)
-    const totalCents = Math.round(subtotalValor * 100);
-    createOrder(totalCents, 'entrega')
-      .then(() => {
-        // Atualiza o contexto do carrinho após criar o pedido
-        refresh().catch(err => console.error('Erro ao atualizar carrinho:', err));
-      })
-      .catch(error => {
-        console.error('Erro ao criar pedido:', error);
-        // Não mostra erro para o usuário, apenas loga
-      });
-
-    // Redirecionar para a tela "Compra Realizada" após 2 segundos (como estava antes)
-    setTimeout(() => {
-      router.push('/compra-realizadaE');
-    }, 2000);
+    try {
+      // Cria o pedido antes de redirecionar
+      const totalCents = Math.round(subtotalValor * 100);
+      await createOrder(totalCents, 'entrega');
+      
+      // Atualiza o contexto do carrinho após criar o pedido
+      await refresh();
+      
+      // Redirecionar para a tela "Compra Realizada" após criar o pedido
+      setTimeout(() => {
+        router.push('/compra-realizadaE');
+      }, 2000);
+    } catch (error: any) {
+      console.error('Erro ao criar pedido:', error);
+      alert(`Erro ao finalizar pedido: ${error.message || 'Erro desconhecido'}`);
+    }
   };
 
 

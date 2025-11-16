@@ -214,3 +214,4 @@ INSERT INTO pharmacies (
 -- 50 — Franca
 ('bb70cdaa-3311-4cd3-dd44-cc55bb88aa11', 'Drogaria Franca', 'Rua do Comércio, 177', 'Franca', 'SP', '14400-100', '(16) 3223-6655', '2.9 km', TRUE, NOW(), NOW());
 
+
