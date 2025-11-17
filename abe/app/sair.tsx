@@ -20,7 +20,7 @@ export default function Sair() {
     try {
       setLoading(true);
       await signOut();
-      router.replace('/login');
+      router.replace('/bemvindo');
     } catch (error: any) {
       console.error('Erro ao sair:', error);
       Alert.alert('Erro', 'Não foi possível fazer logout. Tente novamente.');

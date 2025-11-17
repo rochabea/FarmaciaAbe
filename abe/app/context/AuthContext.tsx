@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
 import { supabase } from "../../lib/supabase";
 import { Session, User } from "@supabase/supabase-js";
+import { useRouter } from "expo-router";
 
 type AuthContextType = {
   user: User | null;
@@ -15,6 +16,7 @@ type AuthContextType = {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
@@ -103,7 +105,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signOut = useCallback(async () => {
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
-  }, []);
+
+    // garante que estado local também zere (mesmo que o listener faça isso)
+    setSession(null);
+    setUser(null);
+
+    //  manda SEMPRE pra tela de bem-vindo
+    router.replace("/bemvindo");
+  }, [router]);
 
   const refreshSession = useCallback(async () => {
     const { data, error } = await supabase.auth.getSession();
