@@ -5,14 +5,12 @@ import { useAuth } from './context/AuthContext';
 
 export default function Register() {
   const router = useRouter();
-  const { signUp } = useAuth();
+  const { signUp, signIn } = useAuth();
 
-  const [name, setName] = useState('');
-  const [cpf, setCpf] = useState('');
+  const [nomeCompleto, setNomeCompleto] = useState('');
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [birthDate, setBirthDate] = useState('');
-  const [phone, setPhone] = useState('');
+  const [senha, setSenha] = useState('');
+  const [confirmarSenha, setConfirmarSenha] = useState('');
   const [loading, setLoading] = useState(false);
 
   const validateEmail = (email: string) => {
@@ -22,48 +20,165 @@ export default function Register() {
 
   const handleRegister = async () => {
     // Validações
-    if (!name.trim() || !email.trim() || !password.trim()) {
-      Alert.alert('Erro', 'Por favor, preencha pelo menos nome, email e senha');
+    if (!nomeCompleto.trim()) {
+      Alert.alert('Atenção', 'Por favor, informe seu nome completo');
+      return;
+    }
+
+    if (!email.trim()) {
+      Alert.alert('Atenção', 'Por favor, informe seu e-mail');
       return;
     }
 
     if (!validateEmail(email.trim())) {
-      Alert.alert('Erro', 'Por favor, insira um email válido');
+      Alert.alert('Atenção', 'Por favor, insira um e-mail válido');
       return;
     }
 
-    if (password.length < 6) {
-      Alert.alert('Erro', 'A senha deve ter pelo menos 6 caracteres');
+    if (!senha.trim()) {
+      Alert.alert('Atenção', 'Por favor, informe sua senha');
+      return;
+    }
+
+    if (senha.length < 6) {
+      Alert.alert('Atenção', 'A senha deve ter pelo menos 6 caracteres');
+      return;
+    }
+
+    if (senha !== confirmarSenha) {
+      Alert.alert('Atenção', 'As senhas não coincidem. Por favor, verifique e tente novamente.');
+      return;
+    }
+
+    // Verifica se o signUp está disponível
+    if (!signUp) {
+      console.error('signUp não está disponível no contexto');
+      Alert.alert('Erro', 'Serviço de autenticação não disponível. Tente novamente mais tarde.');
       return;
     }
 
     try {
       setLoading(true);
-      await signUp(email.trim(), password, {
-        name: name.trim(),
-        cpf: cpf.trim(),
-        birth_date: birthDate.trim(),
-        phone: phone.trim(),
+      console.log('=== INICIANDO CADASTRO ===');
+      console.log('Email:', email.trim());
+      console.log('Nome:', nomeCompleto.trim());
+      
+      // Salva o nome completo no user_metadata com múltiplas chaves para compatibilidade
+      const result = await signUp(email.trim(), senha, {
+        full_name: nomeCompleto.trim(),
+        name: nomeCompleto.trim(),
+        nome: nomeCompleto.trim(),
       });
       
-      Alert.alert(
-        'Sucesso',
-        'Conta criada com sucesso! Verifique seu email para confirmar a conta.',
-        [
-          {
-            text: 'OK',
-            onPress: () => router.replace('/login'),
-          },
-        ]
-      );
+      console.log('=== RESULTADO DO CADASTRO ===');
+      console.log('Result:', JSON.stringify(result, null, 2));
+      console.log('Session:', result?.session ? 'SIM' : 'NÃO');
+      console.log('User:', result?.user ? 'SIM' : 'NÃO');
+      
+      // Se o usuário foi criado, tenta fazer login automaticamente
+      if (result?.user) {
+        // Se já houver sessão, redireciona direto
+        if (result?.session) {
+          console.log('✅ Sessão criada - redirecionando para home');
+          setLoading(false);
+          // Pequeno delay para garantir que o estado foi atualizado
+          setTimeout(() => {
+            router.replace('/(tabs)/home');
+          }, 500);
+        } else {
+          // Se não houver sessão, tenta fazer login automaticamente após um pequeno delay
+          // (para dar tempo do trigger SQL confirmar o email)
+          console.log('⚠️ Usuário criado mas sem sessão - aguardando e tentando login automático');
+          setLoading(false);
+          
+          // Aguarda 1 segundo para dar tempo do trigger SQL confirmar o email
+          setTimeout(async () => {
+            try {
+              console.log('Tentando login automático...');
+              await signIn(email.trim(), senha);
+              console.log('✅ Login automático realizado - redirecionando para home');
+              router.replace('/(tabs)/home');
+            } catch (loginError: any) {
+              console.log('❌ Erro no login automático:', loginError);
+              console.log('Mensagem do erro:', loginError?.message);
+              
+              // Se o erro for sobre email não confirmado, informa o usuário
+              if (loginError?.message?.includes('email') || 
+                  loginError?.message?.includes('confirm') ||
+                  loginError?.message?.includes('not confirmed')) {
+                Alert.alert(
+                  'Conta criada!',
+                  'Sua conta foi criada com sucesso! Verifique seu e-mail para confirmar a conta antes de fazer login.',
+                  [
+                    {
+                      text: 'OK',
+                      onPress: () => {
+                        router.replace('/login');
+                      },
+                    },
+                  ]
+                );
+              } else {
+                // Outro tipo de erro - informa que pode fazer login
+                Alert.alert(
+                  'Conta criada!',
+                  'Sua conta foi criada! Você pode fazer login agora.',
+                  [
+                    {
+                      text: 'OK',
+                      onPress: () => {
+                        router.replace('/login');
+                      },
+                    },
+                  ]
+                );
+              }
+            }
+          }, 1000);
+        }
+      } else {
+        console.log('❌ Nenhum usuário retornado');
+        setLoading(false);
+        Alert.alert(
+          'Atenção',
+          'Não foi possível verificar o resultado do cadastro. Tente fazer login.',
+          [
+            {
+              text: 'OK',
+              onPress: () => router.replace('/login'),
+            },
+          ]
+        );
+      }
     } catch (error: any) {
-      console.error('Erro no cadastro:', error);
-      Alert.alert(
-        'Erro ao cadastrar',
-        error.message || 'Não foi possível criar a conta. Tente novamente.'
-      );
-    } finally {
+      console.error('=== ERRO NO CADASTRO ===');
+      console.error('Error:', error);
+      console.error('Error message:', error?.message);
+      console.error('Error code:', error?.code);
+      console.error('Error details:', JSON.stringify(error, null, 2));
+      
       setLoading(false);
+      
+      // Mensagens de erro mais amigáveis
+      let errorMessage = 'Não foi possível criar a conta. Tente novamente.';
+      
+      if (error?.message) {
+        if (error.message.includes('already registered') || 
+            error.message.includes('already exists') ||
+            error.message.includes('User already registered')) {
+          errorMessage = 'Este e-mail já está cadastrado. Tente fazer login ou use outro e-mail.';
+        } else if (error.message.includes('email')) {
+          errorMessage = 'Erro ao enviar e-mail de confirmação. Verifique se o e-mail está correto.';
+        } else if (error.message.includes('password')) {
+          errorMessage = 'A senha não atende aos requisitos. Tente uma senha mais forte.';
+        } else if (error.message.includes('network') || error.message.includes('fetch')) {
+          errorMessage = 'Erro de conexão. Verifique sua internet e tente novamente.';
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
+      Alert.alert('Erro ao cadastrar', errorMessage);
     }
   };
 
@@ -72,43 +187,32 @@ export default function Register() {
       <ScrollView contentContainerStyle={styles.scrollContainer} keyboardShouldPersistTaps="handled">
 
         {/* Títulos */}
-        <Text style={styles.mainTitle}>Vamos começar !!</Text>
-        <Text style={styles.subtitle}>Complete os dados e crie seu cadastro.</Text>
+        <Text style={styles.mainTitle}>Criar Conta</Text>
+        <Text style={styles.subtitle}>Preencha os dados abaixo para se cadastrar</Text>
 
-
-        {/* Nome */}
+        {/* Nome Completo */}
         <View style={styles.inputContainer}>
-          <Text style={styles.label}>Nome</Text>
+          <Text style={styles.label}>Nome Completo</Text>
           <TextInput
             style={styles.input}
-            placeholder="Digite seu nome"
-            value={name}
-            onChangeText={setName}
-          />
-        </View>
-
-        {/* CPF */}
-        <View style={styles.inputContainer}>
-          <Text style={styles.label}>CPF</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Digite seu CPF"
-            value={cpf}
-            onChangeText={setCpf}
-            keyboardType="numeric"
+            placeholder="Digite seu nome completo"
+            value={nomeCompleto}
+            onChangeText={setNomeCompleto}
+            autoCapitalize="words"
           />
         </View>
 
         {/* Email */}
         <View style={styles.inputContainer}>
-          <Text style={styles.label}>Email</Text>
+          <Text style={styles.label}>E-mail</Text>
           <TextInput
             style={styles.input}
-            placeholder="Digite seu email"
+            placeholder="Digite seu e-mail"
             value={email}
             onChangeText={setEmail}
             keyboardType="email-address"
             autoCapitalize="none"
+            autoCorrect={false}
           />
         </View>
 
@@ -117,33 +221,26 @@ export default function Register() {
           <Text style={styles.label}>Senha</Text>
           <TextInput
             style={styles.input}
-            placeholder="Digite sua senha"
-            value={password}
-            onChangeText={setPassword}
+            placeholder="Digite sua senha (mínimo 6 caracteres)"
+            value={senha}
+            onChangeText={setSenha}
             secureTextEntry
+            autoCapitalize="none"
+            autoCorrect={false}
           />
         </View>
 
-        {/* Data de Nascimento */}
+        {/* Confirmação de Senha */}
         <View style={styles.inputContainer}>
-          <Text style={styles.label}>Data de Nascimento</Text>
+          <Text style={styles.label}>Confirmar Senha</Text>
           <TextInput
             style={styles.input}
-            placeholder="DD/MM/AAAA"
-            value={birthDate}
-            onChangeText={setBirthDate}
-          />
-        </View>
-
-        {/* Telefone */}
-        <View style={styles.inputContainer}>
-          <Text style={styles.label}>Telefone</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Digite seu telefone"
-            value={phone}
-            onChangeText={setPhone}
-            keyboardType="phone-pad"
+            placeholder="Digite a senha novamente"
+            value={confirmarSenha}
+            onChangeText={setConfirmarSenha}
+            secureTextEntry
+            autoCapitalize="none"
+            autoCorrect={false}
           />
         </View>
 
@@ -158,6 +255,14 @@ export default function Register() {
           ) : (
             <Text style={styles.buttonText}>Cadastrar</Text>
           )}
+        </TouchableOpacity>
+
+        {/* Link para login */}
+        <TouchableOpacity 
+          style={styles.loginLink} 
+          onPress={() => router.push('/login')}
+        >
+          <Text style={styles.loginLinkText}>Já tem conta? Faça login aqui</Text>
         </TouchableOpacity>
 
       </ScrollView>
@@ -235,5 +340,14 @@ const styles = StyleSheet.create({
   },
   buttonDisabled: {
     opacity: 0.6,
+  },
+  loginLink: {
+    marginTop: 15,
+  },
+  loginLinkText: {
+    color: '#242760',
+    fontSize: 16,
+    fontWeight: '500',
+    textDecorationLine: 'underline',
   },
 });

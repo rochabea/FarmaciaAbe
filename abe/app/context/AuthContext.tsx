@@ -7,7 +7,7 @@ type AuthContextType = {
   session: Session | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string, metadata?: Record<string, any>) => Promise<void>;
+  signUp: (email: string, password: string, metadata?: Record<string, any>) => Promise<{ session: Session | null; user: User | null } | undefined>;
   signOut: () => Promise<void>;
   refreshSession: () => Promise<void>;
 };
@@ -52,16 +52,50 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signUp = useCallback(
     async (email: string, password: string, metadata?: Record<string, any>) => {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: metadata,
-        },
-      });
+      console.log('=== AuthContext.signUp ===');
+      console.log('Email:', email);
+      console.log('Metadata:', metadata);
+      
+      try {
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: metadata,
+            emailRedirectTo: undefined, // Não precisa de redirecionamento
+          },
+        });
 
-      if (error) throw error;
-      if (!data.user) throw new Error("Falha ao criar conta");
+        console.log('Supabase response - Error:', error);
+        console.log('Supabase response - Data:', data);
+        console.log('Supabase response - Session:', data?.session ? 'SIM' : 'NÃO');
+        console.log('Supabase response - User:', data?.user ? 'SIM' : 'NÃO');
+
+        if (error) {
+          console.error('Erro do Supabase:', error);
+          throw error;
+        }
+        
+        if (!data.user) {
+          console.error('Nenhum usuário retornado');
+          throw new Error("Falha ao criar conta");
+        }
+        
+        // Se houver sessão criada automaticamente (email auto-confirmado), atualiza o estado
+        if (data.session) {
+          console.log('Atualizando estado com sessão');
+          setSession(data.session);
+          setUser(data.session.user);
+        } else {
+          console.log('Sem sessão - email precisa ser confirmado');
+        }
+        
+        // Retorna os dados para que a tela de cadastro possa verificar se houve sessão
+        return data;
+      } catch (err: any) {
+        console.error('Erro capturado no signUp:', err);
+        throw err;
+      }
     },
     []
   );
