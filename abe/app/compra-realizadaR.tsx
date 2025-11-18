@@ -26,11 +26,10 @@ export default function CompraRealizada() {
 
           <TouchableOpacity
             style={styles.avaliarBtn}
-            onPress={() => router.push('/avaliacao')}
-          >
-            <Text style={styles.avaliarText}>Avaliar produto</Text>
+            onPress={() => router.push('/(tabs)/home')}>
+              <Text style={styles.avaliarText}>Voltar para a home</Text>
           </TouchableOpacity>
-        </View>
+          </View>
 
         <TouchableOpacity
           style={styles.cancelarBtn}

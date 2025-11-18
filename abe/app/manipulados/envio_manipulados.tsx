@@ -25,7 +25,7 @@ const CARD = "#F3F4F6";
 export default function EnvioManipulados() {
   const router = useRouter();
   const [file, setFile] = useState<DocumentPicker.DocumentPickerAsset | null>(null);
-  const [paciente, setPaciente] = useState("");
+  const [medicacao, setMedicacao] = useState("");
   const [loading, setLoading] = useState(false);
 
   const pickPdf = async () => {
@@ -48,20 +48,21 @@ export default function EnvioManipulados() {
       return;
     }
 
-    if (!paciente.trim()) {
-      Alert.alert("Atenção", "Por favor, informe o nome do paciente.");
+    if (!medicacao.trim()) {
+      Alert.alert("Atenção", "Por favor, informe o nome da medicação.");
       return;
     }
 
     try {
       setLoading(true);
 
-      // Tenta fazer upload do arquivo para o Supabase Storage (opcional)
       let fileUrl = file.uri || "";
-      
+
       try {
-        const fileExt = file.name?.split('.').pop() || 'pdf';
-        const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+        const fileExt = file.name?.split(".").pop() || "pdf";
+        const fileName = `${Date.now()}_${Math.random()
+          .toString(36)
+          .substring(7)}.${fileExt}`;
         const filePath = `manipulados/${fileName}`;
 
         if (file.uri) {
@@ -69,36 +70,30 @@ export default function EnvioManipulados() {
           const blob = await response.blob();
 
           const { data: uploadData, error: uploadError } = await supabase.storage
-            .from('manipulados')
+            .from("manipulados")
             .upload(filePath, blob, {
-              contentType: 'application/pdf',
-              upsert: false
+              contentType: "application/pdf",
+              upsert: false,
             });
 
           if (!uploadError && uploadData) {
             const { data: urlData } = supabase.storage
-              .from('manipulados')
+              .from("manipulados")
               .getPublicUrl(filePath);
             fileUrl = urlData.publicUrl;
           }
         }
       } catch (storageError: any) {
-        // Se o storage não estiver configurado, usa a URI local
         console.warn("Storage não disponível, usando URI local:", storageError);
         fileUrl = file.uri || "";
       }
 
-      // Cria o pedido de manipulados no banco de dados
-      console.log("Criando pedido de manipulados...");
       const manipulado = await createManipulado({
-        paciente: paciente.trim(),
+        medicacao: medicacao.trim(),
         file_url: fileUrl,
         file_name: file.name || "receita.pdf",
       });
 
-      console.log("Pedido criado com sucesso:", manipulado.id);
-
-      // Redireciona para a tela de análise com o ID do manipulado criado
       router.replace({
         pathname: "/manipulados/analise",
         params: { id: manipulado.id },
@@ -106,8 +101,7 @@ export default function EnvioManipulados() {
     } catch (error: any) {
       console.error("Erro ao enviar manipulado:", error);
       console.error("Detalhes do erro:", JSON.stringify(error, null, 2));
-      
-      // Se o erro for sobre tabela não existir, mostra mensagem clara
+
       if (
         error.message?.includes("schema cache") ||
         error.message?.includes("does not exist") ||
@@ -122,7 +116,7 @@ export default function EnvioManipulados() {
             {
               text: "OK",
               onPress: () => router.back(),
-            }
+            },
           ]
         );
       } else {
@@ -133,7 +127,7 @@ export default function EnvioManipulados() {
             {
               text: "OK",
               onPress: () => {},
-            }
+            },
           ]
         );
       }
@@ -143,15 +137,20 @@ export default function EnvioManipulados() {
   };
 
   return (
-    <SafeAreaView style={estilos.safe} edges={["top", "left", "right"]}>
-      {/* HEADER no padrão do modelo */}
+    <View style={{ flex: 1, backgroundColor: "#fff" }}>
+      {/* HEADER FORA DA SAFE AREA */}
       <View style={estilos.topo}>
         <TouchableOpacity
           style={estilos.botaoVoltar}
-          onPress={() => (router.canGoBack() ? router.back() : router.replace("/(tabs)/home"))}
+          onPress={() =>
+            router.canGoBack() ? router.back() : router.replace("/(tabs)/home")
+          }
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
         >
-          <Image source={require("../../assets/images/seta-esquerda.png")} style={estilos.iconeVoltar} />
+          <Image
+            source={require("../../assets/images/seta-esquerda.png")}
+            style={estilos.iconeVoltar}
+          />
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -159,12 +158,14 @@ export default function EnvioManipulados() {
           onPress={() => router.push("/notificacao")}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
         >
-          <Image source={require("../../assets/images/notificacao.png")} style={estilos.iconeNotificacao} />
+          <Image
+            source={require("../../assets/images/notificacao.png")}
+            style={estilos.iconeNotificacao}
+          />
         </TouchableOpacity>
 
         <Text style={estilos.tituloTopo}>Manipulação</Text>
 
-        {/* Círculo branco sobreposto com ícone */}
         <View style={estilos.circuloIcone} pointerEvents="none">
           <Ionicons name="medkit-outline" size={42} color={NAVY} />
         </View>
@@ -173,57 +174,72 @@ export default function EnvioManipulados() {
       {/* Espaço para não colidir com o círculo */}
       <View style={{ height: 80 }} />
 
-      {/* Instruções */}
-      <Text style={estilos.hint}>
-        Envie a receita deve estar em uma{"\n"}superfície plana com informações nítidas e{"\n"}sem outros itens por cima.
-      </Text>
+      {/* CONTEÚDO DENTRO DA SAFE AREA (SEM AFETAR HEADER) */}
+      <SafeAreaView style={estilos.safe} edges={["left", "right"]}>
+        {/* Instruções */}
+        <Text style={estilos.hint}>
+          Envie a receita deve estar em uma{"\n"}superfície plana com informações
+          nítidas e{"\n"}sem outros itens por cima.
+        </Text>
 
-      {/* Campo de nome do paciente */}
-      <View style={estilos.inputContainer}>
-        <Text style={estilos.inputLabel}>Nome do Paciente</Text>
-        <TextInput
-          style={estilos.input}
-          placeholder="Digite o nome do paciente"
-          placeholderTextColor={MUTED}
-          value={paciente}
-          onChangeText={setPaciente}
-        />
-      </View>
-
-      {/* Linha de anexo */}
-      <TouchableOpacity style={estilos.attachment} activeOpacity={0.8} onPress={pickPdf}>
-        <View style={estilos.attachmentLeft}>
-          <Ionicons name="document-text-outline" size={20} color={MUTED} />
-          <Text style={estilos.attachmentText}>{file?.name ?? "Anexo em PDF"}</Text>
+        {/* Campo de nome do medicacao */}
+        <View style={estilos.inputContainer}>
+          <Text style={estilos.inputLabel}>Nome da medicação</Text>
+          <TextInput
+            style={estilos.input}
+            placeholder="Digite o nome da medicação"
+            placeholderTextColor={MUTED}
+            value={medicacao}
+            onChangeText={setMedicacao}
+          />
         </View>
-        <Ionicons
-          name={Platform.OS === "ios" ? "chevron-forward" : "chevron-forward-outline"}
-          size={20}
-          color={MUTED}
-        />
-      </TouchableOpacity>
 
-      {/* Botão enviar */}
-      <TouchableOpacity
-        style={[estilos.primaryBtn, (!file || !paciente.trim() || loading) && { opacity: 0.5 }]}
-        activeOpacity={0.9}
-        onPress={enviar}
-        disabled={!file || !paciente.trim() || loading}
-      >
-        {loading ? (
-          <ActivityIndicator color="#fff" />
-        ) : (
-          <Text style={estilos.primaryTxt}>Enviar</Text>
-        )}
-      </TouchableOpacity>
-    </SafeAreaView>
+        {/* Linha de anexo */}
+        <TouchableOpacity
+          style={estilos.attachment}
+          activeOpacity={0.8}
+          onPress={pickPdf}
+        >
+          <View style={estilos.attachmentLeft}>
+            <Ionicons name="document-text-outline" size={20} color={MUTED} />
+            <Text style={estilos.attachmentText}>
+              {file?.name ?? "Anexo em PDF"}
+            </Text>
+          </View>
+          <Ionicons
+            name={
+              Platform.OS === "ios" ? "chevron-forward" : "chevron-forward-outline"
+            }
+            size={20}
+            color={MUTED}
+          />
+        </TouchableOpacity>
+
+        {/* Botão enviar */}
+        <TouchableOpacity
+          style={[
+            estilos.primaryBtn,
+            (!file || !medicacao.trim() || loading) && { opacity: 0.5 },
+          ]}
+          activeOpacity={0.9}
+          onPress={enviar}
+          disabled={!file || !medicacao.trim() || loading}
+        >
+          {loading ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={estilos.primaryTxt}>Enviar</Text>
+          )}
+        </TouchableOpacity>
+      </SafeAreaView>
+    </View>
   );
 }
 
 const estilos = StyleSheet.create({
   safe: { flex: 1, backgroundColor: "#fff" },
 
-  // ===== HEADER (igual ao modelo) =====
+  // HEADER
   topo: {
     width: "100%",
     height: 200,
@@ -259,7 +275,7 @@ const estilos = StyleSheet.create({
     borderColor: "#fff",
   },
 
-  // ===== Conteúdo =====
+  // Conteúdo
   hint: {
     marginTop: 8,
     textAlign: "center",

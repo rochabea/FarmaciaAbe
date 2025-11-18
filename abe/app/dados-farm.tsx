@@ -59,7 +59,13 @@ export default function ResumoRetirada() {
         {/* Retirado por */}
         <View style={styles.retiradoPorRow}>
           <Text style={styles.retiradoPorLabel}>Retirado por:</Text>
-          <Text style={styles.usuarioNome}>{user?.name || 'Usuário'}</Text>
+          <Text style={styles.usuarioNome}>
+            {user?.user_metadata?.full_name || 
+             user?.user_metadata?.name || 
+             user?.user_metadata?.nome || 
+             user?.email?.split('@')[0] || 
+             'Usuário'}
+          </Text>
         </View>
 
         {/* Produtos */}
@@ -76,14 +82,31 @@ export default function ResumoRetirada() {
           <>
             <Text style={styles.produtosLabel}>Produtos:</Text>
             {items.map((item) => (
-              <View key={item.id} style={styles.itemRow}>
+              <View key={item.id} style={[
+                styles.itemRow,
+                item.requires_prescription && styles.itemRowWithPrescription
+              ]}>
                 <Image 
                   source={getProductImage(item.image_url)} 
                   style={styles.itemImage} 
                   resizeMode="contain"
                 />
                 <View style={{ flex: 1 }}>
-                  <Text style={styles.itemName}>{item.name}</Text>
+                  <View style={styles.itemNameRow}>
+                    <Text style={styles.itemName}>{item.name}</Text>
+                    {item.requires_prescription && (
+                      <View style={styles.prescriptionBadge}>
+                        <Text style={styles.prescriptionBadgeText}>RX</Text>
+                      </View>
+                    )}
+                  </View>
+                  {item.requires_prescription && (
+                    <View style={styles.prescriptionAlertBox}>
+                      <Text style={styles.prescriptionAlert}>
+                        ⚠ Necessário enviar receita médica
+                      </Text>
+                    </View>
+                  )}
                   <Text style={styles.itemQuantidade}>{item.qty}x</Text>
                 </View>
                 <Text style={styles.itemPrice}>R$ {((item.price || 0) * (item.qty || 0)).toFixed(2)}</Text>
@@ -236,16 +259,58 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 10,
   },
+  itemRowWithPrescription: {
+    borderLeftWidth: 3,
+    borderLeftColor: '#FBBF24',
+    paddingLeft: 12,
+    marginLeft: -12,
+  },
   itemImage: {
     width: 50,
     height: 50,
     borderRadius: 8,
     marginRight: 10,
   },
+  itemNameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    marginBottom: 4,
+  },
   itemName: {
     fontSize: 16,
     fontWeight: '700',
     color: '#000',
+    flex: 1,
+    marginRight: 8,
+  },
+  prescriptionBadge: {
+    backgroundColor: '#FEF3C7',
+    borderWidth: 1,
+    borderColor: '#FBBF24',
+    borderRadius: 4,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+  },
+  prescriptionBadgeText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#92400E',
+    letterSpacing: 0.5,
+  },
+  prescriptionAlertBox: {
+    backgroundColor: '#FEF3C7',
+    borderRadius: 6,
+    padding: 6,
+    marginTop: 4,
+    marginBottom: 4,
+    borderWidth: 1,
+    borderColor: '#FBBF24',
+  },
+  prescriptionAlert: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#92400E',
   },
   itemQuantidade: {
     fontSize: 14,

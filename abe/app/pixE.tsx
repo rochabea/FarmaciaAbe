@@ -10,6 +10,7 @@ export default function Pix() {
   const { refresh } = useCart();
 
   const [subtotalValor, setSubtotalValor] = useState(0);
+  const [freteValor, setFreteValor] = useState(0);
   const [codigoPix, setCodigoPix] = useState('1234-5678-9012');
 
   useEffect(() => {
@@ -19,15 +20,23 @@ export default function Pix() {
         setSubtotalValor(valorConvertido);
       }
     }
+    if (params?.frete) {
+      const freteConvertido = parseFloat(String(params.frete));
+      if (!isNaN(freteConvertido)) {
+        setFreteValor(freteConvertido);
+      }
+    }
   }, [params]);
+
+  const totalComFrete = subtotalValor + freteValor;
 
   const copiarCodigo = async () => {
     Clipboard.setString(codigoPix);
     alert('Código PIX copiado!');
 
     try {
-      // Cria o pedido antes de redirecionar
-      const totalCents = Math.round(subtotalValor * 100);
+      // Cria o pedido antes de redirecionar com o total incluindo frete
+      const totalCents = Math.round(totalComFrete * 100);
       await createOrder(totalCents, 'entrega');
       
       // Atualiza o contexto do carrinho após criar o pedido
@@ -61,8 +70,11 @@ export default function Pix() {
 
       {/* Subtotal e Código PIX */}
       <View style={styles.boxPix}>
-        <Text style={styles.label}>Subtotal</Text>
-        <Text style={styles.total}>R$ {subtotalValor.toFixed(2)}</Text>
+        <Text style={styles.label}>Subtotal: R$ {subtotalValor.toFixed(2)}</Text>
+        {freteValor > 0 && (
+          <Text style={styles.freteText}>Frete: R$ {freteValor.toFixed(2)}</Text>
+        )}
+        <Text style={styles.label}>Total: R$ {totalComFrete.toFixed(2)}</Text>
 
         <Text style={styles.label}>Código Pix</Text>
         <View style={styles.codigoContainer}>
@@ -130,6 +142,7 @@ const styles = StyleSheet.create({
   },
   label: { fontWeight: '700', marginTop: 10, color: '#242760' },
   total: { fontSize: 20, fontWeight: '700', marginTop: 5, color: '#242760' },
+  freteText: { fontSize: 14, fontWeight: '500', marginTop: 5, color: '#6B7280' },
   codigoContainer: { marginTop: 10 },
   codigoInput: {
     backgroundColor: '#fff',

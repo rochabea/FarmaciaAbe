@@ -6,6 +6,7 @@ type DbProduct = {
   name: string;
   image_url?: string | null;
   price_cents?: number | null; // redundância opcional
+  requires_prescription?: boolean | null;
 };
 
 type DbCartItem = {
@@ -52,7 +53,7 @@ export async function fetchCartWithItems(): Promise<{ items: DbCartItem[]; subto
   // Query simplificada sem ordenação
   const { data, error } = await supabase
     .from('cart_items')
-    .select('id, cart_id, product_id, quantity, products:products(id, name, image_url, price_cents)')
+    .select('id, cart_id, product_id, quantity, products:products(id, name, image_url, price_cents, requires_prescription)')
     .eq('cart_id', cartId);
 
   if (error) {

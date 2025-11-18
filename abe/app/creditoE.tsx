@@ -21,6 +21,7 @@ export default function Credito() {
   const { refresh } = useCart();
   const [cartaoSelecionado, setCartaoSelecionado] = useState<string | number | null>(null);
   const [subtotalValor, setSubtotalValor] = useState(0);
+  const [freteValor, setFreteValor] = useState(0);
 
   useEffect(() => {
     if (params?.subtotal) {
@@ -29,14 +30,22 @@ export default function Credito() {
         setSubtotalValor(valorConvertido);
       }
     }
+    if (params?.frete) {
+      const freteConvertido = parseFloat(String(params.frete));
+      if (!isNaN(freteConvertido)) {
+        setFreteValor(freteConvertido);
+      }
+    }
   }, [params]);
+
+  const totalComFrete = subtotalValor + freteValor;
 
   const escolherCartao = async (cartao: Cartao) => {
     setCartaoSelecionado(cartao.id);
     
     try {
-      // Cria o pedido antes de redirecionar
-      const totalCents = Math.round(subtotalValor * 100);
+      // Cria o pedido antes de redirecionar com o total incluindo frete
+      const totalCents = Math.round(totalComFrete * 100);
       await createOrder(totalCents, 'entrega');
       
       // Atualiza o contexto do carrinho após criar o pedido
@@ -67,6 +76,19 @@ export default function Credito() {
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContainer}>
+        {/* Resumo do Pedido */}
+        <View style={styles.resumoBox}>
+          <Text style={styles.resumoTitle}>Resumo do Pedido</Text>
+          <Text style={styles.resumoText}>Subtotal: R$ {subtotalValor.toFixed(2)}</Text>
+          {freteValor > 0 && (
+            <Text style={styles.resumoText}>Frete: R$ {freteValor.toFixed(2)}</Text>
+          )}
+          <View style={styles.totalLine}>
+            <Text style={styles.totalLabel}>Total:</Text>
+            <Text style={styles.totalValue}>R$ {totalComFrete.toFixed(2)}</Text>
+          </View>
+        </View>
+
         {cartoes.length === 0 ? (
           <View style={styles.emptyContainer}>
             <Text style={styles.emptyText}>
@@ -167,6 +189,44 @@ const styles = StyleSheet.create({
     paddingTop: 80,
     paddingHorizontal: 20,
     paddingBottom: 40,
+  },
+
+  resumoBox: {
+    backgroundColor: '#E9E9F5',
+    borderRadius: 12,
+    padding: 15,
+    marginBottom: 20,
+  },
+  resumoTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#242760',
+    marginBottom: 10,
+  },
+  resumoText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#242760',
+    marginBottom: 5,
+  },
+  totalLine: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 10,
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: '#D1D5DB',
+  },
+  totalLabel: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#242760',
+  },
+  totalValue: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#242760',
   },
 
   cartaoBox: {

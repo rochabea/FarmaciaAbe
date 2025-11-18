@@ -152,20 +152,32 @@ export default function Cesta() {
           {/* Itens da cesta */}
           <View style={styles.cestaBox}>
             {items.map((item) => (
-              <View key={item.id} style={styles.itemRow}>
+              <View key={item.id} style={[
+                styles.itemRow,
+                item.requires_prescription && styles.itemRowWithPrescription
+              ]}>
                 <Image 
                   source={getProductImage(item.image_url)} 
                   style={styles.itemImage} 
                   resizeMode="contain"
                 />
                 <View style={{ flex: 1 }}>
-                  <Text style={styles.itemName}>{item.name}</Text>
+                  <View style={styles.itemNameRow}>
+                    <Text style={styles.itemName}>{item.name}</Text>
+                    {item.requires_prescription && (
+                      <View style={styles.prescriptionBadge}>
+                        <Text style={styles.prescriptionBadgeText}>RX</Text>
+                      </View>
+                    )}
+                  </View>
 
                   {/* ALERTA POR ITEM QUANDO PRECISA DE RECEITA */}
                   {item.requires_prescription && (
-                    <Text style={styles.prescriptionAlert}>
-                      ⚠ Necessário enviar receita médica
-                    </Text>
+                    <View style={styles.prescriptionAlertBox}>
+                      <Text style={styles.prescriptionAlert}>
+                        ⚠ Necessário enviar receita médica
+                      </Text>
+                    </View>
                   )}
 
                   <View style={styles.quantidadeRow}>
@@ -329,16 +341,52 @@ const styles = StyleSheet.create({
     marginRight: 10,
     borderRadius: 8,
   },
+  itemNameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    marginBottom: 4,
+  },
   itemName: {
     fontSize: 16,
     fontWeight: '600',
+    flex: 1,
+    marginRight: 8,
   },
-  // Texto de alerta por item
+  prescriptionBadge: {
+    backgroundColor: '#FEF3C7',
+    borderWidth: 1,
+    borderColor: '#FBBF24',
+    borderRadius: 4,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+  },
+  prescriptionBadgeText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#92400E',
+    letterSpacing: 0.5,
+  },
+  itemRowWithPrescription: {
+    borderLeftWidth: 3,
+    borderLeftColor: '#FBBF24',
+    paddingLeft: 12,
+    marginLeft: -12,
+  },
+  // Box de alerta por item
+  prescriptionAlertBox: {
+    backgroundColor: '#FEF3C7',
+    borderRadius: 6,
+    padding: 6,
+    marginTop: 4,
+    marginBottom: 4,
+    borderWidth: 1,
+    borderColor: '#FBBF24',
+  },
   prescriptionAlert: {
-    marginTop: 2,
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '600',
-    color: '#B45309', // marrom/âmbar
+    color: '#92400E',
   },
   quantidadeRow: {
     flexDirection: 'row',

@@ -7,6 +7,7 @@ export default function Pagamento() {
   const params = useLocalSearchParams();
 
   const [subtotalValor, setSubtotalValor] = useState(0);
+  const [freteValor, setFreteValor] = useState(0);
   const [metodoSelecionado, setMetodoSelecionado] = useState<'pix' | 'credito' | null>(null);
 
   useEffect(() => {
@@ -16,13 +17,27 @@ export default function Pagamento() {
         setSubtotalValor(valorConvertido);
       }
     }
+    if (params?.frete) {
+      const freteConvertido = parseFloat(String(params.frete));
+      if (!isNaN(freteConvertido)) {
+        setFreteValor(freteConvertido);
+      }
+    }
   }, [params]);
+
+  const totalComFrete = subtotalValor + freteValor;
 
   const handleContinuar = () => {
     if (!metodoSelecionado) return;
 
     const pathname = metodoSelecionado === 'pix' ? '/pixE' : '/creditoE';
-    router.push({ pathname, params: { subtotal: subtotalValor.toFixed(2) } });
+    router.push({ 
+      pathname, 
+      params: { 
+        subtotal: subtotalValor.toFixed(2),
+        frete: freteValor.toFixed(2),
+      } 
+    });
   };
 
   return (
@@ -70,11 +85,14 @@ export default function Pagamento() {
         </TouchableOpacity>
       </View>
 
-      {/* Subtotal */}
+      {/* Subtotal e Total */}
       <View style={styles.totalBox}>
-        <Text style={styles.subtotalText}>Subtotal</Text>
+        <Text style={styles.subtotalText}>Subtotal: R$ {subtotalValor.toFixed(2)}</Text>
+        {freteValor > 0 && (
+          <Text style={styles.freteText}>Frete: R$ {freteValor.toFixed(2)}</Text>
+        )}
         <Text style={styles.totalText}>Total</Text>
-        <Text style={styles.totalValor}>R$ {subtotalValor.toFixed(2)}</Text>
+        <Text style={styles.totalValor}>R$ {totalComFrete.toFixed(2)}</Text>
       </View>
 
       {/* Botão Continuar */}
@@ -207,6 +225,12 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#000',
     marginBottom: 20,
+  },
+  freteText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#6B7280',
+    marginBottom: 5,
   },
   continuarBtn: {
     backgroundColor: '#242760',

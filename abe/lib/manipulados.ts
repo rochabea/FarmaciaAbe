@@ -6,7 +6,7 @@ export type Manipulado = {
   id: string;
   user_id: string;
   numero: string;
-  paciente: string;
+  medicacao: string;
   file_url?: string | null;
   file_name?: string | null;
   status: ManipuladoStatus;
@@ -17,7 +17,7 @@ export type Manipulado = {
 };
 
 export type ManipuladoInput = {
-  paciente: string;
+  medicacao: string;
   file_url: string;
   file_name: string;
 };
@@ -72,7 +72,7 @@ export async function createManipulado(input: ManipuladoInput): Promise<Manipula
     .insert({
       user_id: user.id,
       numero,
-      paciente: input.paciente,
+      medicacao: input.medicacao,
       file_url: input.file_url,
       file_name: input.file_name,
       status: "Pendente",

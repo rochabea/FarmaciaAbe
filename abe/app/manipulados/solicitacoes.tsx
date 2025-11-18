@@ -8,11 +8,14 @@ import {
   Alert,
   ActivityIndicator,
 } from "react-native";
-import { useRouter } from "expo-router";
-import { useFocusEffect } from "expo-router";
+import { useRouter, useFocusEffect } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { fetchUserManipulados, formatDate, type Manipulado } from "../../lib/manipulados";
+import {
+  fetchUserManipulados,
+  formatDate,
+  type Manipulado,
+} from "../../lib/manipulados";
 import { useAuth } from "../context/AuthContext";
 
 type Status = "Pendente" | "Aprovado" | "Rejeitado";
@@ -21,7 +24,7 @@ type Solicitacao = {
   id: string;
   numero: string;
   dataSolicitacao: string;
-  paciente: string;
+  medicacao: string;
   anexoLabel?: string;
   status: Status;
 };
@@ -88,7 +91,7 @@ const SolicitacaoCard = memo(function SolicitacaoCard({
         <View style={{ gap: 2 }}>
           <Text style={styles.detailText}>Número da solicitação: {item.numero}</Text>
           <Text style={styles.detailText}>Data da solicitação: {item.dataSolicitacao}</Text>
-          <Text style={styles.detailText}>Nome do paciente/cliente: {item.paciente}</Text>
+          <Text style={styles.detailText}>Nome da medicação: {item.medicacao}</Text>
         </View>
 
         <AttachmentRow
@@ -114,55 +117,54 @@ export default function SolicitacoesScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Converte Manipulado para Solicitacao
   const convertToSolicitacao = (m: Manipulado): Solicitacao => ({
     id: m.id,
     numero: m.numero,
     dataSolicitacao: formatDate(m.created_at),
-    paciente: m.paciente,
+    medicacao: m.medicacao,
     anexoLabel: m.file_name || "Anexo em PDF",
     status: m.status as Status,
   });
 
-  // Função para carregar solicitacoes
-  const loadSolicitacoes = useCallback(async () => {
-    if (!user) {
-      setLoading(false);
-      return;
-    }
-
-    try {
-      setLoading(true);
-      setError(null);
-      console.log("Buscando manipulados do usuário...");
-      const manipulados = await fetchUserManipulados();
-      console.log("Manipulados encontrados:", manipulados.length);
-      const converted = manipulados.map(convertToSolicitacao);
-      setSolicitacoes(converted);
-    } catch (err: any) {
-      console.error("Erro ao carregar manipulados:", err);
-      console.error("Detalhes do erro:", JSON.stringify(err, null, 2));
-      // Se o erro for sobre tabela não encontrada, trata como array vazio
-      if (
-        err.message?.includes("schema cache") ||
-        err.message?.includes("does not exist") ||
-        err.message?.includes("relation") ||
-        err.message?.includes("table") ||
-        err.code === "42P01"
-      ) {
-        console.warn("Tabela manipulados não encontrada");
-        setSolicitacoes([]);
-        setError(null);
-      } else {
-        setError(err.message || "Erro ao carregar solicitações");
-        setSolicitacoes([]);
+  const loadSolicitacoes = useCallback(
+    async () => {
+      if (!user) {
+        setLoading(false);
+        return;
       }
-    } finally {
-      setLoading(false);
-    }
-  }, [user]);
 
-  // Recarrega quando a tela é focada
+      try {
+        setLoading(true);
+        setError(null);
+        console.log("Buscando manipulados do usuário...");
+        const manipulados = await fetchUserManipulados();
+        console.log("Manipulados encontrados:", manipulados.length);
+        const converted = manipulados.map(convertToSolicitacao);
+        setSolicitacoes(converted);
+      } catch (err: any) {
+        console.error("Erro ao carregar manipulados:", err);
+        console.error("Detalhes do erro:", JSON.stringify(err, null, 2));
+        if (
+          err.message?.includes("schema cache") ||
+          err.message?.includes("does not exist") ||
+          err.message?.includes("relation") ||
+          err.message?.includes("table") ||
+          err.code === "42P01"
+        ) {
+          console.warn("Tabela manipulados não encontrada");
+          setSolicitacoes([]);
+          setError(null);
+        } else {
+          setError(err.message || "Erro ao carregar solicitações");
+          setSolicitacoes([]);
+        }
+      } finally {
+        setLoading(false);
+      }
+    },
+    [user]
+  );
+
   useFocusEffect(
     useCallback(() => {
       loadSolicitacoes();
@@ -170,8 +172,8 @@ export default function SolicitacoesScreen() {
   );
 
   return (
-    <SafeAreaView style={styles.safe}>
-      {/* ===== HEADER estilo do modelo ===== */}
+    <View style={{ flex: 1, backgroundColor: "#FFFFFF" }}>
+      {/* ===== HEADER FORA DA SAFE AREA ===== */}
       <View style={styles.topo}>
         <TouchableOpacity
           style={styles.botaoVoltar}
@@ -193,7 +195,6 @@ export default function SolicitacoesScreen() {
 
         <Text style={styles.tituloTopo}>Aprovações</Text>
 
-        {/* círculo/ícone central sobreposto */}
         <View style={styles.circuloIcone} pointerEvents="none">
           <Ionicons name="document-text-outline" size={40} color={HEADER_BG} />
           <Ionicons
@@ -205,85 +206,143 @@ export default function SolicitacoesScreen() {
         </View>
       </View>
 
-      {/* espaço para o círculo não cobrir a lista */}
+      {/* Espaço para o círculo não cobrir a lista */}
       <View style={{ height: 80 }} />
 
-      {/* Título da seção */}
-      <Text style={styles.sectionTitle}>Manipulados solicitados</Text>
+      {/* ===== CONTEÚDO DENTRO DA SAFE AREA (SEM HEADER) ===== */}
+      <SafeAreaView style={styles.safe} edges={["left", "right"]}>
+        <Text style={styles.sectionTitle}>Manipulados solicitados</Text>
 
-      {/* Estado de carregamento */}
-      {loading ? (
-        <View style={{ flex: 1, justifyContent: "center", alignItems: "center", paddingVertical: 40 }}>
-          <ActivityIndicator size="large" color={HEADER_BG} />
-          <Text style={{ marginTop: 10, color: TEXT_MUTED }}>Carregando solicitações...</Text>
-        </View>
-      ) : error ? (
-        <View style={{ flex: 1, justifyContent: "center", alignItems: "center", paddingHorizontal: 20, paddingVertical: 40 }}>
-          <Text style={{ color: "crimson", fontWeight: "700", textAlign: "center", marginBottom: 10 }}>
-            Erro ao carregar solicitações
-          </Text>
-          <Text style={{ color: TEXT_MUTED, textAlign: "center", marginBottom: 20 }}>{error}</Text>
-          <TouchableOpacity
-            style={[styles.fab, { position: "relative", bottom: 0, alignSelf: "center" }]}
-            onPress={loadSolicitacoes}
+        {loading ? (
+          <View
+            style={{
+              flex: 1,
+              justifyContent: "center",
+              alignItems: "center",
+              paddingVertical: 40,
+            }}
           >
-            <Text style={{ color: "#fff", fontWeight: "700" }}>Tentar Novamente</Text>
-          </TouchableOpacity>
-        </View>
-      ) : solicitacoes.length === 0 ? (
-        <View style={{ flex: 1, justifyContent: "center", alignItems: "center", paddingHorizontal: 20, paddingVertical: 40 }}>
-          <Ionicons name="document-text-outline" size={64} color={TEXT_MUTED} />
-          <Text style={{ color: TEXT_MUTED, textAlign: "center", marginTop: 16, fontSize: 16 }}>
-            Nenhum pedido realizado
-          </Text>
-          <TouchableOpacity
-            style={styles.newButton}
-            onPress={() => router.push("/manipulados/envio_manipulados")}
+            <ActivityIndicator size="large" color={HEADER_BG} />
+            <Text style={{ marginTop: 10, color: TEXT_MUTED }}>
+              Carregando solicitações...
+            </Text>
+          </View>
+        ) : error ? (
+          <View
+            style={{
+              flex: 1,
+              justifyContent: "center",
+              alignItems: "center",
+              paddingHorizontal: 20,
+              paddingVertical: 40,
+            }}
           >
-            <Ionicons name="add-circle-outline" size={24} color="#FFFFFF" />
-            <Text style={styles.newButtonText}>Enviar Novo Pedido</Text>
-          </TouchableOpacity>
-        </View>
-      ) : (
-        /* Lista de cards */
-        <FlatList
-          data={solicitacoes}
-          keyExtractor={(it) => it.id}
-          contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 120 }}
-          ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
-          renderItem={({ item }) => (
-            <SolicitacaoCard
-              item={item}
-              onPress={() =>
-                router.push({
-                  pathname: "/manipulados/status_manipulados",
-                  params: {
-                    id: item.id,
-                    n: item.numero,
-                    d1: item.status === "Aprovado" && item.dataSolicitacao ? item.dataSolicitacao : "—",
-                    d2: item.status === "Rejeitado" && item.dataSolicitacao ? item.dataSolicitacao : "—",
-                    d3: "—",
-                  },
-                })
-              }
-            />
-          )}
-        />
-      )}
+            <Text
+              style={{
+                color: "crimson",
+                fontWeight: "700",
+                textAlign: "center",
+                marginBottom: 10,
+              }}
+            >
+              Erro ao carregar solicitações
+            </Text>
+            <Text
+              style={{
+                color: TEXT_MUTED,
+                textAlign: "center",
+                marginBottom: 20,
+              }}
+            >
+              {error}
+            </Text>
+            <TouchableOpacity
+              style={[
+                styles.fab,
+                { position: "relative", bottom: 0, alignSelf: "center" },
+              ]}
+              onPress={loadSolicitacoes}
+            >
+              <Text style={{ color: "#fff", fontWeight: "700" }}>
+                Tentar Novamente
+              </Text>
+            </TouchableOpacity>
+          </View>
+        ) : solicitacoes.length === 0 ? (
+          <View
+            style={{
+              flex: 1,
+              justifyContent: "center",
+              alignItems: "center",
+              paddingHorizontal: 20,
+              paddingVertical: 40,
+            }}
+          >
+            <Ionicons name="document-text-outline" size={64} color={TEXT_MUTED} />
+            <Text
+              style={{
+                color: TEXT_MUTED,
+                textAlign: "center",
+                marginTop: 16,
+                fontSize: 16,
+              }}
+            >
+              Nenhum pedido realizado
+            </Text>
+            <TouchableOpacity
+              style={styles.newButton}
+              onPress={() => router.push("/manipulados/envio_manipulados")}
+            >
+              <Ionicons name="add-circle-outline" size={24} color="#FFFFFF" />
+              <Text style={styles.newButtonText}>Enviar Novo Pedido</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <FlatList
+            data={solicitacoes}
+            keyExtractor={(it) => it.id}
+            contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 120 }}
+            ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
+            renderItem={({ item }) => (
+              <SolicitacaoCard
+                item={item}
+                onPress={() =>
+                  router.push({
+                    pathname: "/manipulados/status_manipulados",
+                    params: {
+                      id: item.id,
+                      n: item.numero,
+                      d1:
+                        item.status === "Aprovado" && item.dataSolicitacao
+                          ? item.dataSolicitacao
+                          : "—",
+                      d2:
+                        item.status === "Rejeitado" && item.dataSolicitacao
+                          ? item.dataSolicitacao
+                          : "—",
+                      d3: "—",
+                    },
+                  })
+                }
+              />
+            )}
+          />
+        )}
+      </SafeAreaView>
 
-      {/* Botão flutuante para enviar novo manipulado */}
+      {/* FAB continua flutuando sobre tudo */}
       <TouchableOpacity
         onPress={() => router.push("/manipulados/envio_manipulados")}
         style={styles.fab}
       >
         <Ionicons name="add" size={28} color="#FFFFFF" />
       </TouchableOpacity>
-    </SafeAreaView>
+    </View>
   );
 }
 
 /* ---------- ESTILOS ---------- */
-const HEADER_BG = "#242760"; // azul do modelo
+const HEADER_BG = "#242760";
 const CARD_BG = "#F3F4F6";
 const TEXT_PRIMARY = "#111827";
 const TEXT_MUTED = "#6B7280";
@@ -291,7 +350,6 @@ const TEXT_MUTED = "#6B7280";
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: "#FFFFFF" },
 
-  /* ===== Header do modelo ===== */
   topo: {
     width: "100%",
     height: 200,
@@ -325,7 +383,6 @@ const styles = StyleSheet.create({
     borderColor: "#fff",
   },
 
-  /* ===== Conteúdo ===== */
   sectionTitle: {
     fontSize: 18,
     fontWeight: "700",

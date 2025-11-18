@@ -3,6 +3,7 @@ import { View, Text, Image, TouchableOpacity, ScrollView, StyleSheet, ActivityIn
 import { useRouter } from 'expo-router';
 import { useFocusEffect } from 'expo-router';
 import { useCallback } from 'react';
+import { Ionicons } from '@expo/vector-icons';
 import { fetchUserOrders, formatDate, type Order } from '../../lib/orders';
 import { useAuth } from '../context/AuthContext';
 
@@ -123,21 +124,38 @@ export default function Orders() {
             )}
             <View style={styles.itensBox}>
               {pedido.order_items.map((item, index) => (
-                <View key={item.id || index} style={styles.itemRow}>
-                  <Image 
-                    source={getProductImage(item.products?.image_url)} 
-                    style={styles.itemImage}
-                    resizeMode="contain"
-                  />
-                  <View style={{ flex: 1 }}>
-                    <Text style={styles.itemName}>{item.products?.name || 'Produto sem nome'}</Text>
-                    <Text style={styles.itemQuantity}>{item.quantity}x</Text>
+                <View key={item.id || index} style={styles.itemContainer}>
+                  <View style={styles.itemRow}>
+                    <Image 
+                      source={getProductImage(item.products?.image_url)} 
+                      style={styles.itemImage}
+                      resizeMode="contain"
+                    />
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.itemName}>{item.products?.name || 'Produto sem nome'}</Text>
+                      <Text style={styles.itemQuantity}>{item.quantity}x</Text>
+                    </View>
+                    <Text style={styles.itemPrice}>
+                      R$ {item.products?.price_cents 
+                        ? ((item.products.price_cents / 100) * item.quantity).toFixed(2)
+                        : '0.00'}
+                    </Text>
                   </View>
-                  <Text style={styles.itemPrice}>
-                    R$ {item.products?.price_cents 
-                      ? ((item.products.price_cents / 100) * item.quantity).toFixed(2)
-                      : '0.00'}
-                  </Text>
+                  <TouchableOpacity
+                    style={styles.avaliarButton}
+                    onPress={() => {
+                      router.push({
+                        pathname: '/avaliacao-produto',
+                        params: {
+                          productId: item.product_id,
+                          productName: item.products?.name || 'Produto',
+                        },
+                      });
+                    }}
+                  >
+                    <Ionicons name="star-outline" size={16} color="#242760" />
+                    <Text style={styles.avaliarText}>Avaliar</Text>
+                  </TouchableOpacity>
                 </View>
               ))}
             </View>
@@ -239,6 +257,12 @@ const styles = StyleSheet.create({
     paddingTop: 10,
   },
 
+  itemContainer: {
+    marginBottom: 12,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+  },
   itemRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -289,6 +313,23 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#666',
     marginTop: 2,
+  },
+  avaliarButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#F4F4F7',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    alignSelf: 'flex-start',
+    marginTop: 4,
+  },
+  avaliarText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#242760',
+    marginLeft: 6,
   },
 
   retryButton: {

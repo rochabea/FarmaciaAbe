@@ -23,6 +23,7 @@ type Endereco = {
 export default function Entregas() {
   const params = useLocalSearchParams();
   const subtotalValor = params.subtotal ? parseFloat(params.subtotal as string) : 0;
+  const freteValor = params.frete ? parseFloat(params.frete as string) : 0;
 
   const router = useRouter();
 
@@ -118,6 +119,7 @@ export default function Entregas() {
                     pathname: '/opcao-pagamentoE',
                     params: {
                       subtotal: subtotalValor.toString(),
+                      frete: freteValor.toString(),
                     },
                   });
                 }}

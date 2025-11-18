@@ -13,10 +13,13 @@ export default function EnviadoScreen() {
   const { id } = useLocalSearchParams<{ id?: string }>();
 
   return (
-    <SafeAreaView style={estilos.safe} edges={["top", "left", "right"]}>
-      {/* HEADER estilo modelo */}
+    <View style={{ flex: 1, backgroundColor: "#fff" }}>
+      {/* ===== HEADER FORA DA SAFE AREA ===== */}
       <View style={estilos.topo}>
-        <TouchableOpacity style={estilos.botaoVoltar} onPress={() => router.back()}>
+        <TouchableOpacity
+          style={estilos.botaoVoltar}
+          onPress={() => router.back()}
+        >
           <Image
             source={require("../../assets/images/seta-esquerda.png")}
             style={estilos.iconeVoltar}
@@ -35,7 +38,6 @@ export default function EnviadoScreen() {
 
         <Text style={estilos.tituloTopo}>Enviado</Text>
 
-        {/* círculo/ícone central sobreposto */}
         <View style={estilos.circuloIcone} pointerEvents="none">
           <Ionicons name="document-text-outline" size={40} color={NAVY} />
           <View style={estilos.checkWrap}>
@@ -47,48 +49,47 @@ export default function EnviadoScreen() {
       {/* Espaço para não colidir com o círculo */}
       <View style={{ height: 80 }} />
 
-      {/* Card de confirmação */}
-      <View style={estilos.card}>
-        <Ionicons
-          name="medkit-outline"
-          size={40}
-          color={NAVY}
-          style={{ alignSelf: "center", marginBottom: 10 }}
-        />
-        <Text style={estilos.msg}>
-          Sua receita foi enviada com{"\n"}sucesso! Em breve você terá{"\n"}atualização do pedido!
-        </Text>
+      {/* ===== CONTEÚDO DENTRO DA SAFE AREA ===== */}
+      <SafeAreaView style={estilos.safe} edges={["left", "right"]}>
+        <View style={estilos.card}>
+          <Ionicons
+            name="medkit-outline"
+            size={40}
+            color={NAVY}
+            style={{ alignSelf: "center", marginBottom: 10 }}
+          />
 
-        <TouchableOpacity
-          style={estilos.primaryBtn}
-          activeOpacity={0.9}
-          onPress={() => {
-            console.log("Botão Visualizar status clicado. ID recebido:", id);
-            if (id) {
-              // Se tiver ID, vai direto para o status do pedido específico
-              console.log("Redirecionando para status com ID:", id);
-              router.push({
-                pathname: "/manipulados/status_manipulados",
-                params: { id: String(id) },
-              });
-            } else {
-              // Caso contrário, vai para a lista de solicitações
-              console.log("Sem ID, redirecionando para lista de solicitações");
-              router.push("/manipulados/solicitacoes");
-            }
-          }}
-        >
-          <Text style={estilos.primaryTxt}>Visualizar status</Text>
-        </TouchableOpacity>
-      </View>
-    </SafeAreaView>
+          <Text style={estilos.msg}>
+            Sua receita foi enviada com{"\n"}sucesso! Em breve você terá{"\n"}
+            atualização do pedido!
+          </Text>
+
+          <TouchableOpacity
+            style={estilos.primaryBtn}
+            activeOpacity={0.9}
+            onPress={() => {
+              if (id) {
+                router.push({
+                  pathname: "/manipulados/status_manipulados",
+                  params: { id: String(id) },
+                });
+              } else {
+                router.push("/manipulados/solicitacoes");
+              }
+            }}
+          >
+            <Text style={estilos.primaryTxt}>Visualizar status</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    </View>
   );
 }
 
 const estilos = StyleSheet.create({
   safe: { flex: 1, backgroundColor: "#fff" },
 
-  /* ===== Header estilo modelo ===== */
+  /* ===== HEADER ===== */
   topo: {
     width: "100%",
     height: 200,
