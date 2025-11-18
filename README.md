@@ -173,4 +173,4 @@ npx expo start
 
 ## ❤️ Autoras
 
-**Beatriz Araujo (rochabea)**\ e **Ana Alice Alves (alicettins)**
+**Beatriz Araujo (rochabea)** e **Ana Alice Alves (alicettins)**
