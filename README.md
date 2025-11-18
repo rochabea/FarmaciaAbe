@@ -1,59 +1,176 @@
-# 🏥 Farmácia Abe
+# 🏥 Farmácia Abê --- Marketplace de Farmácias
 
-Aplicativo mobile desenvolvido com **React Native (Expo)** integrado ao **Supabase**, com o objetivo de oferecer um **marketplace de farmácias**, permitindo que o usuário encontre e compre produtos de diferentes farmácias em um só lugar.
+Aplicativo mobile desenvolvido com **React Native (Expo)** e
+**Supabase**, criado para oferecer uma experiência completa de compra de
+medicamentos e produtos de farmácia.
 
+O usuário pode navegar por produtos, adicionar itens ao carrinho,
+favoritar, enviar receitas, solicitar manipulados e acompanhar o status
+do pedido --- tudo em um único app moderno, rápido e responsivo.
+
+------------------------------------------------------------------------
 
 ## 🚀 Tecnologias Utilizadas
 
-- **React Native (Expo)**
-- **TypeScript / JavaScript**
-- **Supabase** 
-- **AsyncStorage** 
-- **Expo Router**
-- **React Navigation**
-- **Figma**
+### **Frontend**
 
+-   ⚛️ React Native (Expo)
+-   💙 TypeScript
+-   🧭 Expo Router (navegação com rotas estruturadas)
+-   🎨 Styled Components / estilos customizados
+-   📱 Safe Area Context
 
-## 💡 Funcionalidades Principais
+### **Backend**
 
-- 🧾 **Cadastro e Login** de usuários via Supabase  
-- 🏪 **Listagem de farmácias** disponíveis  
-- 💊 **Catálogo de produtos** de múltiplas farmácias  
-- 🛒 **Carrinho de compras** integrado  
-- 🔍 **Busca por produtos e farmácias**  
-- 👤 **Perfil do usuário** com histórico de pedidos  
-- ⚙️ **Integração com Supabase** para sincronização de dados em tempo real  
+-   🟣 Supabase (Auth, Database, Storage)
+-   🔐 RLS (Row Level Security)
+-   🗂️ VIEWS customizadas
 
+### **Armazenamento**
 
-## 🔧 Como iniciar o projeto
+-   📦 AsyncStorage
 
-1. Clone o repositório:
+### **Outras Ferramentas**
 
-```bash
+-   🧪 Expo Document Picker
+-   🎨 Figma
+-   ⚡ APIs internas (lib/)
+
+------------------------------------------------------------------------
+
+## 💡 Funcionalidades do Aplicativo
+
+### 🧍‍♂️ 1. Perfis de Acesso
+
+-   Cliente (fluxo completo)
+-   Entregador (protótipo)
+-   Farmacêutico (em desenvolvimento)
+
+### 🔐 2. Autenticação
+
+-   Cadastro
+-   Login
+-   Logout
+-   Sessão persistida
+
+### 🛒 3. Carrinho de Compras
+
+-   Adicionar itens\
+-   Remover itens\
+-   Atualizar quantidades\
+-   Total automático\
+-   Aviso de **produto que exige receita**
+
+### ❤️ 4. Favoritos
+
+-   Adicionar/remover
+-   Listagem sincronizada
+-   Ordenação por data
+
+### 💊 5. Catálogo de Produtos
+
+-   Lista completa
+-   Produtos promocionais
+-   Busca
+-   Página de detalhes
+
+### 📬 6. Manipulados
+
+-   Upload de PDF
+-   Nome da medicação
+-   Envio ao Supabase Storage
+-   Status do pedido
+-   Aprovado / Rejeitado / Pronto
+-   Tela final de confirmação
+
+### 🧪 7. Módulo do Entregador
+
+-   Protótipo funcional
+
+### 🔔 8. Notificações internas
+
+### 👤 9. Conta e Perfil
+
+-   Dados do usuário
+-   Histórico
+-   Logout
+
+------------------------------------------------------------------------
+
+## 🧠 Arquitetura do Projeto
+
+  Camada      Responsabilidade
+  ----------- ------------------------------------
+  UI          Telas em React Native
+  Contextos   Auth, Cart, Favorites, Manipulados
+  Lib         Comunicação com Supabase
+  Banco       Tabelas + Views + RLS
+  Navegação   Expo Router
+
+------------------------------------------------------------------------
+
+## 🔧 Como Executar o Projeto
+
+### 1. Clone o repositório
+
+``` bash
 git clone https://github.com/rochabea/FarmaciaAbe.git
 ```
 
-2. Após clonar o repositório, entre na pasta do projeto:
-```bash
+### 2. Instale dependências
+
+``` bash
 cd abe
 npm install
 ```
 
-3. Entre na pasta abe e inicie o Expo (no Git Bash):
-```bash
-cd abe
+### 3. Inicie o Expo
+
+``` bash
 npx expo start
 ```
 
-Após isso basta escanear o QR Code com o app Expo Go no celular para rodar o aplicativo, ou apertar "W" para abrir no browser.
+### 4. Execute
 
-## 🧠 Arquitetura 
+-   Expo Go\
+-   Browser (pressione W)
 
-O app segue uma arquitetura modular com contextos e hooks personalizados, integrando o Supabase para autenticação e dados de usuários e produtos.
+------------------------------------------------------------------------
 
-| Camada | Descrição |
-|--------|-----------|
-| UI | Interface construída com React Native e NativeWind |
-| Dados | Banco e autenticação via Supabase |
-| Armazenamento Local | AsyncStorage |
-| Navegação | Expo Router e React Navigation |
+## ⚠️ Perfis Disponíveis
+
+-   Cliente → completo\
+-   Entregador → protótipo\
+-   Farmacêutico → em desenvolvimento
+
+------------------------------------------------------------------------
+
+## 📂 Estrutura do Projeto
+
+    abe/
+     ├── app/
+     │    ├── (tabs)/
+     │    ├── manipulados/
+     │    ├── conta/
+     │    ├── favoritos/
+     │    ├── notificacao/
+     │    └── ...
+     ├── lib/
+     ├── context/
+     └── assets/
+
+------------------------------------------------------------------------
+
+## 🎯 Roadmap
+
+-   Pagamentos online\
+-   Rastreio\
+-   Chat\
+-   Dashboard para farmácias\
+-   Modo escuro
+
+------------------------------------------------------------------------
+
+## ❤️ Autoras
+
+**Beatriz Araujo (rochabea)**\ e **Ana Alice Alves (alicettins)**
