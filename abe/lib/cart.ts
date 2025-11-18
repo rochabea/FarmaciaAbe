@@ -14,6 +14,7 @@ type DbCartItem = {
   product_id: string;
   quantity: number; // nome da coluna no Supabase
   products: DbProduct | null; // preço vem da tabela products
+  requires_prescription: boolean | null;
 };
 
 /** Garante que o usuário tenha um carrinho e retorna o id */

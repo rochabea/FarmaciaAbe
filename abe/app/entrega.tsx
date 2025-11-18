@@ -1,37 +1,78 @@
 import React, { useState, useContext } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Image, ActivityIndicator } from 'react-native';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  ScrollView,
+  StyleSheet,
+  Image,
+  ActivityIndicator,
+} from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { EnderecoContext } from './parametros/EnderecoContext';
+
+// Tipo certinho para o endereço
+type Endereco = {
+  id: string;      // ou number, se no Supabase estiver como number
+  logradouro: string;
+  numero: string;
+  cep: string;
+  cidade: string;
+};
 
 export default function Entregas() {
   const params = useLocalSearchParams();
   const subtotalValor = params.subtotal ? parseFloat(params.subtotal as string) : 0;
-  const router = useRouter();
-  const { enderecos, loading } = useContext(EnderecoContext);
-  const [localSelecionado, setLocalSelecionado] = useState<string | number | null>(null);
 
+  const router = useRouter();
+
+  // 🔹 Garante o tipo do contexto
+  const { enderecos, loading } = useContext(EnderecoContext) as {
+    enderecos: Endereco[];
+    loading: boolean;
+  };
+
+  const [localSelecionado, setLocalSelecionado] = useState<string | null>(null);
 
   return (
     <View style={styles.container}>
       {/* Topo azul */}
       <View style={styles.topRect}>
         <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-        <Image source={require('../assets/images/seta-esquerda.png')} style={styles.backIcon} />
+          <Image
+            source={require('../assets/images/seta-esquerda.png')}
+            style={styles.backIcon}
+          />
         </TouchableOpacity>
+
         <Text style={styles.topTitle}>Entregas</Text>
-        <TouchableOpacity style={styles.notification} onPress={() => router.push("/notificacao")}>
-          <Image source={require('../assets/images/notificacaoB.png')} style={styles.notificationIcon} />
+
+        <TouchableOpacity
+          style={styles.notification}
+          onPress={() => router.push('/notificacao')}
+        >
+          <Image
+            source={require('../assets/images/notificacaoB.png')}
+            style={styles.notificationIcon}
+          />
         </TouchableOpacity>
+
         <View style={styles.iconCircle}>
-          <Image source={require('../assets/images/carA.png')} style={styles.cartIcon} />
+          <Image
+            source={require('../assets/images/carA.png')}
+            style={styles.cartIcon}
+          />
         </View>
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         {/* Cabeçalho com ícone e texto */}
         <View style={styles.headerRow}>
-          <Image source={require('../assets/images/entrega.png')} style={styles.entregaIcon} />
-          <View style={{flex: 1}}>
+          <Image
+            source={require('../assets/images/entrega.png')}
+            style={styles.entregaIcon}
+          />
+          <View style={{ flex: 1 }}>
             <Text style={styles.headerText}>Em qual local deseja receber seu</Text>
             <Text style={styles.headerText}>pedido?</Text>
           </View>
@@ -53,7 +94,7 @@ export default function Entregas() {
             </Text>
           </View>
         ) : (
-          enderecos.map((e) => (
+          enderecos.map((e: Endereco) => (
             <View
               key={e.id}
               style={[
@@ -72,7 +113,7 @@ export default function Entregas() {
 
               <TouchableOpacity
                 onPress={() => {
-                  setLocalSelecionado(e.id);
+                  setLocalSelecionado(e.id); 
                   router.push({
                     pathname: '/opcao-pagamentoE',
                     params: {
@@ -87,22 +128,26 @@ export default function Entregas() {
           ))
         )}
 
-
         {/* Botões inferiores */}
         <View style={styles.bottomButtons}>
-          <TouchableOpacity 
-            style={styles.accentBtn} 
-            onPress={() => router.push({
-              pathname: '/add-endereco',
-              params: {
-                subtotal: subtotalValor.toString(),
-              },
-            })}
+          <TouchableOpacity
+            style={styles.accentBtn}
+            onPress={() =>
+              router.push({
+                pathname: '/add-endereco',
+                params: {
+                  subtotal: subtotalValor.toString(),
+                },
+              })
+            }
           >
             <Text style={styles.accentBtnText}>Adicionar Endereço</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.accentBtn} onPress={() => router.push('/home')}>
+          <TouchableOpacity
+            style={styles.accentBtn}
+            onPress={() => router.push('/home')}
+          >
             <Text style={styles.accentBtnText}>Voltar à tela Inicial</Text>
           </TouchableOpacity>
         </View>
@@ -110,6 +155,8 @@ export default function Entregas() {
     </View>
   );
 }
+
+// 🔹 Estilos
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -132,8 +179,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 20,
     top: 50,
-    zIndex: 100, 
-
+    zIndex: 100,
   },
 
   backIcon: {
@@ -258,6 +304,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     fontSize: 16,
   },
+
   emptyContainer: {
     paddingVertical: 40,
     paddingHorizontal: 20,

@@ -1,4 +1,3 @@
-// app/manipulados/envio_manipulados.tsx (ajuste o caminho se for outro)
 import React, { useState } from "react";
 import {
   View,

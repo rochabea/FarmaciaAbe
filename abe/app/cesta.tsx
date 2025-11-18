@@ -32,7 +32,7 @@ export default function Cesta() {
       if (qtyAtual > 1) {
         await setQty(itemId, qtyAtual - 1);
       } else {
-        await removerItem(itemId);
+        await removeItem(itemId);
       }
     } catch (error: any) {
       Alert.alert("Erro", error.message || "Não foi possível atualizar a quantidade");
@@ -58,6 +58,9 @@ export default function Cesta() {
     }
     return require('../assets/images/remedio.png');
   };
+
+  // Verifica se há algum item que exige receita
+  const hasRxItems = !loading && !error && items.some((item) => item.requires_prescription);
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -118,7 +121,7 @@ export default function Cesta() {
         </View>
       )}
 
-      {/* Itens da cesta */}
+      {/* Itens da cesta vazia */}
       {!loading && !error && items.length === 0 && (
         <View style={styles.centerContainer}>
           <Text style={styles.emptyText}>Seu carrinho está vazio</Text>
@@ -130,6 +133,17 @@ export default function Cesta() {
 
       {!loading && !error && items.length > 0 && (
         <>
+          {/* Banner geral se houver item com receita */}
+          {hasRxItems && (
+            <View style={styles.rxInfoBox}>
+              <Text style={styles.rxInfoTitle}>Atenção</Text>
+              <Text style={styles.rxInfoText}>
+                Alguns itens do seu carrinho exigem receita médica. 
+                Você poderá enviar a receita na etapa de finalização do pedido.
+              </Text>
+            </View>
+          )}
+
           {/* Vendedor */}
           <View style={styles.vendedorRow}>
             <Text style={styles.vendidoPor}>Itens no carrinho</Text>
@@ -146,6 +160,14 @@ export default function Cesta() {
                 />
                 <View style={{ flex: 1 }}>
                   <Text style={styles.itemName}>{item.name}</Text>
+
+                  {/* ALERTA POR ITEM QUANDO PRECISA DE RECEITA */}
+                  {item.requires_prescription && (
+                    <Text style={styles.prescriptionAlert}>
+                      ⚠ Necessário enviar receita médica
+                    </Text>
+                  )}
+
                   <View style={styles.quantidadeRow}>
                     <TouchableOpacity onPress={() => diminuirQuantidade(item.id, item.qty)}>
                       <Text style={styles.qtdBtn}>-</Text>
@@ -255,6 +277,28 @@ const styles = StyleSheet.create({
     width: 70,
     height: 70,
   },
+
+  // Banner geral de receita
+  rxInfoBox: {
+    width: '90%',
+    backgroundColor: '#FEF3C7', // amarelo bem clarinho
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#FBBF24',
+  },
+  rxInfoTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#92400E',
+    marginBottom: 4,
+  },
+  rxInfoText: {
+    fontSize: 13,
+    color: '#92400E',
+  },
+
   vendedorRow: {
     width: '90%',
     flexDirection: 'row',
@@ -266,10 +310,7 @@ const styles = StyleSheet.create({
     color: '#242760',
     fontWeight: '700',
   },
-  removerText: {
-    color: '#000000ff',
-    fontWeight: '700',
-  },
+
   cestaBox: {
     width: '90%',
     backgroundColor: '#F4F4F7',
@@ -291,6 +332,13 @@ const styles = StyleSheet.create({
   itemName: {
     fontSize: 16,
     fontWeight: '600',
+  },
+  // Texto de alerta por item
+  prescriptionAlert: {
+    marginTop: 2,
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#B45309', // marrom/âmbar
   },
   quantidadeRow: {
     flexDirection: 'row',
