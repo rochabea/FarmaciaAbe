@@ -197,7 +197,7 @@ export default function TelaProduto() {
             onPress={() => router.push("/manipulados/envio_manipulados")}
             activeOpacity={0.7}
           >
-            <Text style={styles.link}>Enviar para manipulação</Text>
+            <Text style={styles.link}>Enviar receita</Text>
           </TouchableOpacity>
         </View>
 

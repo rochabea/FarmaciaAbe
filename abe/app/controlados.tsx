@@ -1,7 +1,13 @@
 import React, { useEffect, useMemo, useState, memo } from "react";
 import {
-  View, Text, Image, StyleSheet, TouchableOpacity,
-  ScrollView, ActivityIndicator, Alert,
+  View,
+  Text,
+  Image,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  ActivityIndicator,
+  Alert,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { useCart } from "./context/CartContext";
@@ -22,7 +28,7 @@ export default function Medicamentos() {
       try {
         setErrorMsg(null);
         setLoading(true);
-        const products = await fetchProductsByCategory("Beleza e Cosméticos", 50);
+        const products = await fetchProductsByCategory("Medicamentos Controlados", 50);
         setItems(products);
       } catch (e: any) {
         setErrorMsg(e.message || "Falha ao carregar produtos");
@@ -43,21 +49,21 @@ export default function Medicamentos() {
     }
   };
 
-  // abre a tela do produto com o id
+  // abrir a tela do produto com o id
   const handleOpen = (id: string) => {
     router.push({ pathname: "/produto/tela_produto", params: { id } });
   };
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      {/* Header */}
+      {/* ===== Header ===== */}
       <View style={styles.topRect}>
         <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
           <Image source={require("../assets/images/seta-esquerda.png")} style={styles.backIcon} />
         </TouchableOpacity>
 
         <Text style={styles.topTitle}>
-          Beleza {"\n"}Cosméticos
+          Medicamentos {"\n"}Controlados
         </Text>
 
 
@@ -66,13 +72,13 @@ export default function Medicamentos() {
         </TouchableOpacity>
 
         <View style={styles.iconCircle}>
-          <Image source={require("../assets/images/cosmeticos.png")} style={styles.sacolaIcon} />
+          <Image source={require("../assets/images/medicine.png")} style={styles.sacolaIcon} />
         </View>
       </View>
 
       <View style={{ height: 80 }} />
 
-      {/* Conteúdo */}
+      {/* ===== Conteúdo ===== */}
       {loading ? (
         <View style={{ paddingTop: 24, alignItems: "center" }}>
           <ActivityIndicator color={NAVY} />
@@ -86,10 +92,6 @@ export default function Medicamentos() {
           <Text style={{ color: "#666", textAlign: "center", marginTop: 6 }}>
             Verifique sua conexão e tente novamente.
           </Text>
-        </View>
-      ) : items.length === 0 ? (
-        <View style={{ paddingTop: 24, alignItems: "center" }}>
-          <Text style={{ color: "#666" }}>Nenhum item encontrado nessa categoria.</Text>
         </View>
       ) : (
         <View style={styles.grid}>
@@ -109,7 +111,7 @@ export default function Medicamentos() {
   );
 }
 
-/* Card de Produto (2 colunas) */
+/* ===== Card de Produto (2 colunas com flex-wrap) ===== */
 const ProductCard = memo(function ProductCard({
   item,
   onBuy,
@@ -171,7 +173,7 @@ const ProductCard = memo(function ProductCard({
   );
 });
 
-/* Estilos */
+/* ===== Estilos ===== */
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
@@ -179,6 +181,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingBottom: 40,
   },
+
+  // HEADER
   topRect: {
     width: "100%",
     height: 250,
@@ -189,7 +193,13 @@ const styles = StyleSheet.create({
     justifyContent: "flex-start",
     position: "relative",
   },
-  topTitle: { color: "#fff", fontSize: 28, fontWeight: "700", marginTop: 90, textAlign: "center", },
+  topTitle: {
+    color: "#fff",
+    fontSize: 28,
+    fontWeight: "700",
+    marginTop: 90,
+    textAlign: "center",
+  },
   backButton: { position: "absolute", left: 20, top: 98 },
   backIcon: { width: 25, height: 25 },
   notification: { position: "absolute", right: 20, top: 92 },
@@ -208,6 +218,7 @@ const styles = StyleSheet.create({
   },
   sacolaIcon: { width: 70, height: 70 },
 
+  // GRID
   grid: {
     width: "90%",
     flexDirection: "row",
@@ -215,6 +226,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
 
+  // Card
   card: {
     width: "48%",
     backgroundColor: "#fff",
@@ -258,10 +270,13 @@ const styles = StyleSheet.create({
     alignSelf: "center",
   },
   cardImg: { width: 110, height: 160, resizeMode: "cover" },
+
   cardTitle: { fontSize: 14, fontWeight: "600", color: "#2B3A8A", marginBottom: 4, minHeight: 36 },
   cardSub: { fontSize: 14, color: "#111", marginBottom: 4 },
   originalPrice: { textDecorationLine: "line-through", color: "#999", fontSize: 12 },
   cardPrice: { fontWeight: "700", color: "#111", fontSize: 16 },
+
+  // botão
   buyBtn: {
     alignSelf: "center",
     paddingVertical: 10,
