@@ -63,7 +63,7 @@ export default function HistoricoPedidosProtótipo() {
           <Text style={styles.topLine2}>Entregas</Text>
         </View>
 
-        <TouchableOpacity style={styles.notification} onPress={() => console.log('Cliquei na notificação')}>
+        <TouchableOpacity style={styles.notification} onPress={() => router.push('/entregador/notificacao_ent')}>
           <Image source={require('../../../assets/images/notificacaoB.png')} style={styles.notificationIcon} />
         </TouchableOpacity>
 

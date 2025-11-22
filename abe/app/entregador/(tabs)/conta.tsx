@@ -13,13 +13,12 @@ export default function Profile() {
     { name: 'Editar Perfil', route: '../editar_ent', iconLeft: require('../../../assets/images/editarC.png'), iconRight: require('../../../assets/images/seta-direita.png') },
     { name: 'Minhas entregas', route: '/entregador/confirma', iconLeft: require('../../../assets/images/moto.png'), iconRight: require('../../../assets/images/seta-direita.png') },
     { name: 'Veículo', route: '../veiculo', iconLeft: require('../../../assets/images/carro.png'), iconRight: require('../../../assets/images/seta-direita.png') },
-    { name: 'Privacidade', route: '/privacidade', iconLeft: require('../../../assets/images/privacidade.png'), iconRight: require('../../../assets/images/seta-direita.png') },
-    { name: 'Configurações', route: '/configuracao', iconLeft: require('../../../assets/images/configuracaoC.png'), iconRight: require('../../../assets/images/seta-direita.png') },
+    { name: 'Privacidade', route: '../privacidade_ent', iconLeft: require('../../../assets/images/privacidade.png'), iconRight: require('../../../assets/images/seta-direita.png') },
+    { name: 'Configurações', route: '/entregador/configuracao', iconLeft: require('../../../assets/images/configuracaoC.png'), iconRight: require('../../../assets/images/seta-direita.png') },
   ];
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      {/* Topo azul arredondado */}
       <View style={styles.topRect}>
         <Text style={styles.topTitle}>Perfil</Text>
 
@@ -29,7 +28,7 @@ export default function Profile() {
         </TouchableOpacity>
 
         {/* Notificação */}
-        <TouchableOpacity style={styles.notification} onPress={() => router.push("/notificacao")}>
+        <TouchableOpacity style={styles.notification} onPress={() => router.push("/entregador/notificacao_ent")}>
           <Image source={require('../../../assets/images/notificacaoB.png')} style={styles.notificationIcon} />
         </TouchableOpacity>
 
@@ -60,7 +59,7 @@ export default function Profile() {
       </View>
 
       {/* Botão sair */}
-      <TouchableOpacity style={styles.logoutButton} onPress={() => router.replace('/sair')}>
+      <TouchableOpacity style={styles.logoutButton} onPress={() => router.replace('/entregador/sair_ent')}>
         <Image source={require('../../../assets/images/sair.png')} style={styles.logoutIcon} />
         <Text style={styles.logoutText}>Sair</Text>
       </TouchableOpacity>

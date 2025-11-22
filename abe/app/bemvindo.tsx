@@ -25,7 +25,7 @@ export default function Index() {
   const handleCadastro = () => {
     if (!modo) return alert('Selecione um modo');
     switch (modo) {
-      case 'entregador': router.push('/cadastro'); break;
+      case 'entregador': router.push('/entregador/cadastro_ent'); break;
       case 'lojista': router.push('/cadastro'); break;
       case 'cliente': router.push('/cadastro'); break;
     }

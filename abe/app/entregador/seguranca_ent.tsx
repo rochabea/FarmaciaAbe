@@ -15,7 +15,7 @@ export default function Seguranca() {
         </TouchableOpacity>
 
         {/* Notificação */}
-        <TouchableOpacity style={estilos.botaoNotificacao} onPress={() => router.push('/notificacao')}>
+        <TouchableOpacity style={estilos.botaoNotificacao} onPress={() => router.push('/entregador/notificacao_ent')}>
           <Image source={require('../../assets/images/notificacao.png')} style={estilos.iconeNotificacao} />
         </TouchableOpacity>
 

@@ -23,7 +23,7 @@ export default function Configuracoes() {
 
         <Text style={styles.topTitle}>Configurações</Text>
 
-        <TouchableOpacity style={styles.notification} onPress={() => router.push("/notificacao")}>
+        <TouchableOpacity style={styles.notification} onPress={() => router.push("/entregador/notificacao_ent")}>
           <Image source={require('../../../assets/images/notificacaoB.png')} style={styles.notificationIcon} />
         </TouchableOpacity>
 
@@ -97,8 +97,8 @@ const styles = StyleSheet.create({
   },
 
   notificationIcon: {
-    width: 25,
-    height: 25,
+    width: 34,
+    height: 34,
   },
 
   iconCircle: {
