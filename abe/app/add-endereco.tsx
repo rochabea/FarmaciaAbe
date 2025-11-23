@@ -1,24 +1,120 @@
-import React, { useState, useContext } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, ScrollView, Image, Alert } from 'react-native';
+import React, { useState, useContext, useEffect } from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  KeyboardAvoidingView,
+  ScrollView,
+  Image,
+  Alert,
+  Platform,
+  ActivityIndicator,
+} from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { EnderecoContext } from './parametros/EnderecoContext';
+import { Picker } from '@react-native-picker/picker';
+
+// Lista de UFs
+const UFS = [
+  { label: "Selecione o estado", value: "" },
+  { label: "AC - Acre", value: "AC" },
+  { label: "AL - Alagoas", value: "AL" },
+  { label: "AP - Amapá", value: "AP" },
+  { label: "AM - Amazonas", value: "AM" },
+  { label: "BA - Bahia", value: "BA" },
+  { label: "CE - Ceará", value: "CE" },
+  { label: "DF - Distrito Federal", value: "DF" },
+  { label: "ES - Espírito Santo", value: "ES" },
+  { label: "GO - Goiás", value: "GO" },
+  { label: "MA - Maranhão", value: "MA" },
+  { label: "MT - Mato Grosso", value: "MT" },
+  { label: "MS - Mato Grosso do Sul", value: "MS" },
+  { label: "MG - Minas Gerais", value: "MG" },
+  { label: "PA - Pará", value: "PA" },
+  { label: "PB - Paraíba", value: "PB" },
+  { label: "PR - Paraná", value: "PR" },
+  { label: "PE - Pernambuco", value: "PE" },
+  { label: "PI - Piauí", value: "PI" },
+  { label: "RJ - Rio de Janeiro", value: "RJ" },
+  { label: "RN - Rio Grande do Norte", value: "RN" },
+  { label: "RS - Rio Grande do Sul", value: "RS" },
+  { label: "RO - Rondônia", value: "RO" },
+  { label: "RR - Roraima", value: "RR" },
+  { label: "SC - Santa Catarina", value: "SC" },
+  { label: "SP - São Paulo", value: "SP" },
+  { label: "SE - Sergipe", value: "SE" },
+  { label: "TO - Tocantins", value: "TO" },
+];
 
 export default function AddEndereco() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const { adicionarEndereco } = useContext(EnderecoContext);
+
   const subtotalValor = params.subtotal ? parseFloat(params.subtotal as string) : 0;
+  const freteValor = params.frete ? parseFloat(params.frete as string) : 0;
+
+  const cepParam = params.cep ? String(params.cep).replace(/\D/g, '') : '';
 
   const [logradouro, setLogradouro] = useState('');
   const [numero, setNumero] = useState('');
   const [cep, setCep] = useState('');
   const [cidade, setCidade] = useState('');
-  const [estado, setEstado] = useState('');
+  const [estado, setEstado] = useState(''); 
   const [bairro, setBairro] = useState('');
+
   const [loading, setLoading] = useState(false);
+  const [loadingCep, setLoadingCep] = useState(false);
+
+  // Preenche CEP inicial
+  useEffect(() => {
+    if (cepParam && !cep) {
+      const formatado = cepParam.replace(/(\d{5})(\d{3})/, '$1-$2');
+      setCep(formatado);
+      buscarViaCEP(cepParam);
+    }
+  }, [cepParam]);
+
+  const buscarViaCEP = async (cepLimpo: string) => {
+    try {
+      setLoadingCep(true);
+
+      const response = await fetch(`https://viacep.com.br/ws/${cepLimpo}/json/`);
+      const data = await response.json();
+
+      if (data.erro) {
+        Alert.alert('CEP inválido', 'Não foi possível localizar o CEP informado.');
+        return;
+      }
+
+      setLogradouro(data.logradouro || '');
+      setBairro(data.bairro || '');
+      setCidade(data.localidade || '');
+      setEstado(data.uf || ''); // seleciona automaticamente no dropdown
+    } catch (error) {
+      console.error(error);
+      Alert.alert('Erro', 'Não foi possível consultar o CEP.');
+    } finally {
+      setLoadingCep(false);
+    }
+  };
+
+  const handleCepChange = (text: string) => {
+    const cepLimpo = text.replace(/\D/g, '');
+
+    if (cepLimpo.length <= 8) {
+      const formatado = cepLimpo.replace(/(\d{5})(\d)/, '$1-$2');
+      setCep(formatado);
+
+      if (cepLimpo.length === 8) {
+        buscarViaCEP(cepLimpo);
+      }
+    }
+  };
 
   const cadastrarEndereco = async () => {
-    // Validações básicas
     if (!logradouro.trim() || !numero.trim() || !cep.trim() || !cidade.trim() || !estado.trim() || !bairro.trim()) {
       Alert.alert('Erro', 'Por favor, preencha todos os campos');
       return;
@@ -26,90 +122,146 @@ export default function AddEndereco() {
 
     try {
       setLoading(true);
-      
+
       const novoEndereco = await adicionarEndereco({
         logradouro: logradouro.trim(),
         numero: numero.trim(),
         cep: cep.trim(),
         cidade: cidade.trim(),
-        estado: estado.trim(),
+        estado: estado.trim(),  // UF selecionada
         bairro: bairro.trim(),
       });
-      
+
       if (!novoEndereco || !novoEndereco.id) {
         throw new Error('Endereço não foi criado corretamente');
       }
-      
-      setLoading(false);
-      
-      // Navega de volta para a tela de endereços para que o usuário possa selecionar
-      const subtotalString = subtotalValor > 0 ? subtotalValor.toString() : '0';
+
       router.push({
         pathname: '/entrega',
         params: {
-          subtotal: subtotalString,
+          subtotal: subtotalValor.toString(),
+          frete: freteValor.toString(),
+          cep: cep.replace(/\D/g, ''),
         },
       });
     } catch (error: any) {
       console.error('Erro ao cadastrar endereço:', error);
+      Alert.alert('Erro', error.message || 'Não foi possível cadastrar o endereço.');
+    } finally {
       setLoading(false);
-      Alert.alert('Erro', error.message || 'Não foi possível cadastrar o endereço. Tente novamente.');
     }
   };
 
   return (
-    <KeyboardAvoidingView style={styles.container} behavior="padding">
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
       <ScrollView contentContainerStyle={styles.scrollContainer} keyboardShouldPersistTaps="handled">
-
         <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
           <Image source={require('../assets/images/seta-esquerda.png')} style={styles.backIcon} />
         </TouchableOpacity>
 
-        <Text style={styles.mainTitle}>Cadastro e seu endereço</Text>
-        <Text style={styles.subtitle}>Complete com os dados para receber seus pedidos.</Text>
+        <Text style={styles.mainTitle}>Cadastro de endereço</Text>
+        <Text style={styles.subtitle}>Preencha os dados para receber seus pedidos.</Text>
 
-        {['Logradouro','Número','CEP','Cidade','Estado','Bairro'].map((label,index) => {
-          const setters = [setLogradouro,setNumero,setCep,setCidade,setEstado,setBairro];
-          const values = [logradouro,numero,cep,cidade,estado,bairro];
-          const placeholders = ['Rua Exemplo','00','00000-00','Cidade','Estado','Bairro'];
-          return (
-            <View key={index} style={styles.inputContainer}>
-              <Text style={styles.label}>{label}</Text>
-              <TextInput
-                style={styles.input}
-                placeholder={placeholders[index]}
-                value={values[index]}
-                onChangeText={setters[index]}
-                keyboardType={label === 'Número' || label === 'CEP' ? 'numeric' : 'default'}
-              />
-            </View>
-          );
-        })}
+        {/* Logradouro */}
+        <View style={styles.inputContainer}>
+          <Text style={styles.label}>Logradouro</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Rua Exemplo"
+            value={logradouro}
+            onChangeText={setLogradouro}
+          />
+        </View>
 
-        <TouchableOpacity 
-          style={[styles.button, loading && { opacity: 0.6 }]} 
+        {/* Número */}
+        <View style={styles.inputContainer}>
+          <Text style={styles.label}>Número</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="00"
+            value={numero}
+            onChangeText={(t) => setNumero(t.replace(/\D/g, ''))}
+            keyboardType="numeric"
+          />
+        </View>
+
+        {/* CEP */}
+        <View style={styles.inputContainer}>
+          <Text style={styles.label}>CEP</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="00000-000"
+            value={cep}
+            onChangeText={handleCepChange}
+            keyboardType="numeric"
+            maxLength={9}
+          />
+          {loadingCep && <Text style={styles.loadingCepText}>Buscando CEP...</Text>}
+        </View>
+
+        {/* Bairro */}
+        <View style={styles.inputContainer}>
+          <Text style={styles.label}>Bairro</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Bairro"
+            value={bairro}
+            onChangeText={setBairro}
+          />
+        </View>
+
+        {/* Cidade */}
+        <View style={styles.inputContainer}>
+          <Text style={styles.label}>Cidade</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Cidade"
+            value={cidade}
+            onChangeText={setCidade}
+          />
+        </View>
+
+        {/*  Estado com dropdown */}
+        <View style={styles.inputContainer}>
+          <Text style={styles.label}>Estado</Text>
+          <View style={styles.pickerContainer}>
+            <Picker
+              selectedValue={estado}
+              onValueChange={(value) => setEstado(value)}
+              style={styles.picker}
+            >
+              {UFS.map((uf) => (
+                <Picker.Item key={uf.value} label={uf.label} value={uf.value} />
+              ))}
+            </Picker>
+          </View>
+        </View>
+
+        {/* Botão */}
+        <TouchableOpacity
+          style={[styles.button, loading && { opacity: 0.6 }]}
           onPress={cadastrarEndereco}
           disabled={loading}
         >
-          <Text style={styles.buttonText}>
-            {loading ? 'Cadastrando...' : 'Cadastrar Localização'}
-          </Text>
+          {loading ? (
+            <ActivityIndicator size="small" color="#fff" />
+          ) : (
+            <Text style={styles.buttonText}>Cadastrar Localização</Text>
+          )}
         </TouchableOpacity>
-
       </ScrollView>
     </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-  },
+  container: { flex: 1, backgroundColor: '#FFFFFF' },
 
   scrollContainer: {
     flexGrow: 1,
-    justifyContent: 'flex-start',
     paddingTop: 30,
     paddingHorizontal: 20,
     paddingBottom: 40,
@@ -122,20 +274,14 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
 
-  backIcon: {
-    width: 25,
-    height: 25,
-    tintColor: '#000', // seta preta
-
-  },
+  backIcon: { width: 25, height: 25, tintColor: '#000' },
 
   mainTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#000000ff',
+    color: '#000',
     marginTop: 70,
     marginBottom: 5,
-    textAlign: 'left',
   },
 
   subtitle: {
@@ -143,19 +289,15 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#242760',
     marginBottom: 20,
-    textAlign: 'left',
   },
 
-  inputContainer: {
-    width: '100%',
-    marginBottom: 15,
-  },
+  inputContainer: { width: '100%', marginBottom: 15 },
 
   label: {
     fontSize: 16,
-    color: '#000000ff',
-    marginBottom: 5,
     fontWeight: '700',
+    color: '#000',
+    marginBottom: 5,
   },
 
   input: {
@@ -166,6 +308,26 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingHorizontal: 15,
     fontSize: 16,
+  },
+
+  loadingCepText: {
+    marginTop: 5,
+    fontSize: 12,
+    color: '#666',
+  },
+
+  // Picker styles
+  pickerContainer: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 12,
+    overflow: 'hidden',
+    height: 50,
+    justifyContent: 'center',
+  },
+  picker: {
+    height: 50,
+    width: '100%',
   },
 
   button: {
@@ -179,7 +341,7 @@ const styles = StyleSheet.create({
   },
 
   buttonText: {
-    color: '#FFFFFF',
+    color: '#fff',
     fontSize: 18,
     fontWeight: '700',
   },

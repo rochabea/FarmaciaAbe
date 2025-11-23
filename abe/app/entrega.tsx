@@ -11,9 +11,8 @@ import {
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { EnderecoContext } from './parametros/EnderecoContext';
 
-// Tipo certinho para o endereço
 type Endereco = {
-  id: string;      // ou number, se no Supabase estiver como number
+  id: string;
   logradouro: string;
   numero: string;
   cep: string;
@@ -25,15 +24,21 @@ export default function Entregas() {
   const subtotalValor = params.subtotal ? parseFloat(params.subtotal as string) : 0;
   const freteValor = params.frete ? parseFloat(params.frete as string) : 0;
 
+  // pega o CEP vindo da tela anterior
+  const cepFrete = params.cep ? String(params.cep) : "";
+
   const router = useRouter();
 
-  // 🔹 Garante o tipo do contexto
   const { enderecos, loading } = useContext(EnderecoContext) as {
     enderecos: Endereco[];
     loading: boolean;
   };
 
   const [localSelecionado, setLocalSelecionado] = useState<string | null>(null);
+
+  // só para mostrar formatadinho se quiser
+  const cepFreteFormatado =
+    cepFrete.length === 8 ? cepFrete.replace(/(\d{5})(\d{3})/, "$1-$2") : cepFrete;
 
   return (
     <View style={styles.container}>
@@ -67,7 +72,7 @@ export default function Entregas() {
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContainer}>
-        {/* Cabeçalho com ícone e texto */}
+        {/* Cabeçalho */}
         <View style={styles.headerRow}>
           <Image
             source={require('../assets/images/entrega.png')}
@@ -76,6 +81,13 @@ export default function Entregas() {
           <View style={{ flex: 1 }}>
             <Text style={styles.headerText}>Em qual local deseja receber seu</Text>
             <Text style={styles.headerText}>pedido?</Text>
+
+            {/* ✅ opcional: mostra o CEP usado no frete */}
+            {!!cepFrete && (
+              <Text style={styles.cepFreteInfo}>
+                CEP do frete: {cepFreteFormatado}
+              </Text>
+            )}
           </View>
         </View>
 
@@ -114,7 +126,7 @@ export default function Entregas() {
 
               <TouchableOpacity
                 onPress={() => {
-                  setLocalSelecionado(e.id); 
+                  setLocalSelecionado(e.id);
                   router.push({
                     pathname: '/opcao-pagamentoE',
                     params: {
@@ -139,6 +151,8 @@ export default function Entregas() {
                 pathname: '/add-endereco',
                 params: {
                   subtotal: subtotalValor.toString(),
+                  // repassa o CEP para pré-preencher
+                  cep: cepFrete,
                 },
               })
             }
@@ -158,12 +172,8 @@ export default function Entregas() {
   );
 }
 
-// 🔹 Estilos
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
+  container: { flex: 1, backgroundColor: '#fff' },
 
   topRect: {
     width: '100%',
@@ -176,29 +186,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingTop: 50,
   },
-
   backButton: {
     position: 'absolute',
     left: 20,
     top: 50,
     zIndex: 100,
   },
-
-  backIcon: {
-    width: 25,
-    height: 25,
-  },
+  backIcon: { width: 25, height: 25 },
 
   notification: {
     position: 'absolute',
     right: 20,
     top: 50,
   },
-
-  notificationIcon: {
-    width: 34,
-    height: 34,
-  },
+  notificationIcon: { width: 34, height: 34 },
 
   topTitle: {
     color: '#fff',
@@ -223,12 +224,7 @@ const styles = StyleSheet.create({
     borderWidth: 3,
     borderColor: '#fff',
   },
-
-  cartIcon: {
-    width: 70,
-    height: 70,
-    resizeMode: 'contain',
-  },
+  cartIcon: { width: 70, height: 70, resizeMode: 'contain' },
 
   scrollContainer: {
     paddingTop: 80,
@@ -241,17 +237,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 20,
   },
-
   entregaIcon: {
     width: 71,
     height: 71,
     marginRight: 10,
   },
-
   headerText: {
     fontSize: 16,
     fontWeight: '700',
     color: '#242760',
+  },
+
+  cepFreteInfo: {
+    marginTop: 6,
+    fontSize: 13,
+    color: '#6B7280',
+    fontWeight: '600',
   },
 
   localizacaoBox: {
@@ -263,25 +264,21 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     alignItems: 'center',
   },
-
   localSelecionado: {
     borderWidth: 2,
     borderColor: '#242760',
   },
-
   nomeLocalizacao: {
     fontSize: 16,
     fontWeight: '700',
     color: '#242760',
   },
-
   infoLocalizacao: {
     fontSize: 14,
     fontWeight: '500',
     color: '#242760',
     marginTop: 5,
   },
-
   selecionarText: {
     fontSize: 14,
     fontWeight: '700',
@@ -292,7 +289,6 @@ const styles = StyleSheet.create({
     marginTop: 20,
     paddingBottom: 20,
   },
-
   accentBtn: {
     backgroundColor: '#242760',
     paddingVertical: 15,
@@ -300,7 +296,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 10,
   },
-
   accentBtnText: {
     color: '#fff',
     fontWeight: '700',

@@ -8,7 +8,7 @@ export default function Privacidade() {
   return (
     <View style={estilos.container}>
       <View style={estilos.topo}>
-        <TouchableOpacity style={estilos.botaoVoltar} onPress={() => router.back()}>
+        <TouchableOpacity style={estilos.botaoVoltar} onPress={() => router.replace('/conta')}>
           <Image source={require('../assets/images/seta-esquerda.png')} style={estilos.iconeVoltar} />
         </TouchableOpacity>
 

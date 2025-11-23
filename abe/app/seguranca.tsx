@@ -10,7 +10,7 @@ export default function Seguranca() {
       {/* TOPO */}
       <View style={estilos.topo}>
         {/* Botão voltar */}
-        <TouchableOpacity style={estilos.botaoVoltar} onPress={() => router.back()}>
+        <TouchableOpacity style={estilos.botaoVoltar} onPress={() => router.replace('/conta')}>
           <Image source={require('../assets/images/seta-esquerda.png')} style={estilos.iconeVoltar} />
         </TouchableOpacity>
 

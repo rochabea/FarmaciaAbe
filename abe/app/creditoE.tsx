@@ -41,23 +41,29 @@ export default function Credito() {
   const totalComFrete = subtotalValor + freteValor;
 
   const escolherCartao = async (cartao: Cartao) => {
+    // marca qual card está carregando
+    setLoadingEscolha(cartao.id);
     setCartaoSelecionado(cartao.id);
-    
+
     try {
-      // Cria o pedido antes de redirecionar com o total incluindo frete
       const totalCents = Math.round(totalComFrete * 100);
+
       await createOrder(totalCents, 'entrega');
-      
-      // Atualiza o contexto do carrinho após criar o pedido
       await refresh();
-      
-      // Redireciona após criar o pedido com sucesso
+
       router.push('/compra-realizadaE');
     } catch (error: any) {
       console.error('Erro ao criar pedido:', error);
       alert(`Erro ao finalizar pedido: ${error.message || 'Erro desconhecido'}`);
+    } finally {
+      // garante que mesmo com erro o loading some
+      setLoadingEscolha(null);
     }
   };
+
+
+  const [loadingEscolha, setLoadingEscolha] = useState<string | number | null>(null);
+
 
   return (
     <View style={styles.container}>
@@ -105,9 +111,21 @@ export default function Credito() {
               <Text style={styles.nomeCartao}>{cartao.nome}</Text>
               <Text style={styles.numeroCartao}>{cartao.numero}</Text>
             </View>
-            <TouchableOpacity onPress={() => escolherCartao(cartao)}>
-              <Text style={styles.escolherText}>Escolher</Text>
+            <TouchableOpacity
+              style={styles.btnEscolher}
+              onPress={() => escolherCartao(cartao)}
+              disabled={loadingEscolha === cartao.id}
+            >
+              {loadingEscolha === cartao.id ? (
+                <Image
+                  source={require('../assets/images/loading.gif')}
+                  style={{ width: 28, height: 28 }}
+                />
+              ) : (
+                <Text style={styles.escolherText}>Escolher</Text>
+              )}
             </TouchableOpacity>
+
           </View>
           ))
         )}
@@ -293,4 +311,12 @@ const styles = StyleSheet.create({
     color: '#666',
     textAlign: 'center',
   },
+
+  btnEscolher: {
+  paddingVertical: 8,
+  paddingHorizontal: 16,
+  backgroundColor: '#fff',
+  borderRadius: 8,
+},
+
 });

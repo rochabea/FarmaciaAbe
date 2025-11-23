@@ -1,13 +1,23 @@
 import React, { useState } from 'react';
-import { View, Text, Image, TouchableOpacity, ScrollView, StyleSheet, TextInput, ActivityIndicator } from 'react-native';
+import {
+  View,
+  Text,
+  Image,
+  TouchableOpacity,
+  ScrollView,
+  StyleSheet,
+  TextInput,
+  ActivityIndicator
+} from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 
 export default function FormaEntrega() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const subtotalValor = params.subtotal ? parseFloat(params.subtotal as string) : 0;
+
   const [forma, setForma] = useState<'entrega' | 'retirada' | null>(null);
-  
+
   // Estados para cálculo de frete
   const [cep, setCep] = useState("");
   const [calculandoFrete, setCalculandoFrete] = useState(false);
@@ -15,7 +25,6 @@ export default function FormaEntrega() {
   const [fretePrazo, setFretePrazo] = useState<string | null>(null);
   const [freteErro, setFreteErro] = useState<string | null>(null);
 
-  // Função para calcular frete
   const handleCalcularFrete = async () => {
     const cepLimpo = cep.replace(/\D/g, "");
 
@@ -54,14 +63,23 @@ export default function FormaEntrega() {
     }
   };
 
-  // Calcula o total com frete
   const totalComFrete = subtotalValor + (freteValor || 0);
 
   const handleContinuar = () => {
     if (forma === 'entrega') {
-      // Se for entrega, passa o subtotal e o frete
       const freteParam = freteValor ? freteValor.toFixed(2) : '0';
-      router.push(`/entrega?subtotal=${subtotalValor}&frete=${freteParam}`);
+
+      
+      const cepParam = cep.replace(/\D/g, ""); // manda limpo (8 dígitos)
+
+      router.push({
+        pathname: '/entrega',
+        params: {
+          subtotal: subtotalValor.toString(),
+          frete: freteParam,
+          cep: cepParam,  
+        }
+      });
     } else if (forma === 'retirada') {
       router.push(`/retirada?subtotal=${subtotalValor}`);
     }
@@ -92,9 +110,9 @@ export default function FormaEntrega() {
         <Text style={styles.tituloEntrega}>Você deseja retirar ou receber o seu pedido?</Text>
       </View>
 
-      {/* Opções de entrega */}
+      {/* Opções */}
       <View style={styles.opcoesRow}>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={[styles.caixa, forma === 'entrega' && styles.caixaSelecionada]}
           onPress={() => setForma('entrega')}
         >
@@ -102,7 +120,7 @@ export default function FormaEntrega() {
           <Text style={styles.caixaTexto}>Entrega</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity 
+        <TouchableOpacity
           style={[styles.caixa, forma === 'retirada' && styles.caixaSelecionada]}
           onPress={() => setForma('retirada')}
         >
@@ -111,7 +129,7 @@ export default function FormaEntrega() {
         </TouchableOpacity>
       </View>
 
-      {/* Campo de cálculo de frete (apenas quando entrega for selecionada) */}
+      {/* Frete */}
       {forma === 'entrega' && (
         <View style={styles.freteBox}>
           <Text style={styles.freteTitle}>Calcular Frete</Text>
@@ -122,7 +140,6 @@ export default function FormaEntrega() {
               placeholderTextColor="#999"
               value={cep}
               onChangeText={(text) => {
-                // Formata o CEP enquanto digita
                 const cepLimpo = text.replace(/\D/g, "");
                 if (cepLimpo.length <= 8) {
                   const cepFormatado = cepLimpo.replace(/(\d{5})(\d)/, "$1-$2");
@@ -144,11 +161,9 @@ export default function FormaEntrega() {
               )}
             </TouchableOpacity>
           </View>
-          
-          {freteErro && (
-            <Text style={styles.freteErro}>{freteErro}</Text>
-          )}
-          
+
+          {freteErro && <Text style={styles.freteErro}>{freteErro}</Text>}
+
           {freteValor !== null && !freteErro && (
             <View style={styles.freteResult}>
               <Text style={styles.freteValorText}>
@@ -164,7 +179,7 @@ export default function FormaEntrega() {
         </View>
       )}
 
-      {/* Subtotal e Total */}
+      {/* Totais */}
       <View style={styles.totalBox}>
         <Text style={styles.subtotalText}>Subtotal: R$ {subtotalValor.toFixed(2)}</Text>
         {forma === 'entrega' && freteValor !== null && (
@@ -172,16 +187,18 @@ export default function FormaEntrega() {
         )}
         <Text style={styles.totalText}>Total</Text>
         <Text style={styles.totalValor}>
-          R$ {forma === 'entrega' && freteValor !== null ? totalComFrete.toFixed(2) : subtotalValor.toFixed(2)}
+          R$ {forma === 'entrega' && freteValor !== null
+            ? totalComFrete.toFixed(2)
+            : subtotalValor.toFixed(2)}
         </Text>
       </View>
 
-      {/* Botão continuar */}
-      <TouchableOpacity 
+      {/* Continuar */}
+      <TouchableOpacity
         style={[
-          styles.continuarBtn, 
+          styles.continuarBtn,
           (!forma || (forma === 'entrega' && freteValor === null)) && { opacity: 0.5 }
-        ]} 
+        ]}
         disabled={!forma || (forma === 'entrega' && freteValor === null)}
         onPress={handleContinuar}
       >
@@ -190,6 +207,7 @@ export default function FormaEntrega() {
     </ScrollView>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: {

@@ -168,9 +168,11 @@ export default function Retirada() {
                   <Text style={styles.telefoneFarmacia}>Tel: {farmacia.telefone}</Text>
                 )}
               </View>
+              {/*
               {farmacia.distancia && (
                 <Text style={styles.distanciaFarmacia}>{farmacia.distancia}</Text>
               )}
+                */}
             </TouchableOpacity>
           ))}
         </View>
