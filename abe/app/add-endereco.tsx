@@ -11,6 +11,8 @@ import {
   Alert,
   Platform,
   ActivityIndicator,
+  Modal,
+  Pressable,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { EnderecoContext } from './parametros/EnderecoContext';
@@ -62,11 +64,14 @@ export default function AddEndereco() {
   const [numero, setNumero] = useState('');
   const [cep, setCep] = useState('');
   const [cidade, setCidade] = useState('');
-  const [estado, setEstado] = useState(''); 
+  const [estado, setEstado] = useState('');
   const [bairro, setBairro] = useState('');
 
   const [loading, setLoading] = useState(false);
   const [loadingCep, setLoadingCep] = useState(false);
+
+  // Controla modal do picker no iOS
+  const [ufModal, setUfModal] = useState(false);
 
   // Preenche CEP inicial
   useEffect(() => {
@@ -80,7 +85,6 @@ export default function AddEndereco() {
   const buscarViaCEP = async (cepLimpo: string) => {
     try {
       setLoadingCep(true);
-
       const response = await fetch(`https://viacep.com.br/ws/${cepLimpo}/json/`);
       const data = await response.json();
 
@@ -92,7 +96,7 @@ export default function AddEndereco() {
       setLogradouro(data.logradouro || '');
       setBairro(data.bairro || '');
       setCidade(data.localidade || '');
-      setEstado(data.uf || ''); // seleciona automaticamente no dropdown
+      setEstado(data.uf || '');
     } catch (error) {
       console.error(error);
       Alert.alert('Erro', 'Não foi possível consultar o CEP.');
@@ -103,7 +107,6 @@ export default function AddEndereco() {
 
   const handleCepChange = (text: string) => {
     const cepLimpo = text.replace(/\D/g, '');
-
     if (cepLimpo.length <= 8) {
       const formatado = cepLimpo.replace(/(\d{5})(\d)/, '$1-$2');
       setCep(formatado);
@@ -128,7 +131,7 @@ export default function AddEndereco() {
         numero: numero.trim(),
         cep: cep.trim(),
         cidade: cidade.trim(),
-        estado: estado.trim(),  // UF selecionada
+        estado: estado.trim(),
         bairro: bairro.trim(),
       });
 
@@ -158,6 +161,8 @@ export default function AddEndereco() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <ScrollView contentContainerStyle={styles.scrollContainer} keyboardShouldPersistTaps="handled">
+        
+        {/* VOLTAR */}
         <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
           <Image source={require('../assets/images/seta-esquerda.png')} style={styles.backIcon} />
         </TouchableOpacity>
@@ -165,7 +170,7 @@ export default function AddEndereco() {
         <Text style={styles.mainTitle}>Cadastro de endereço</Text>
         <Text style={styles.subtitle}>Preencha os dados para receber seus pedidos.</Text>
 
-        {/* Logradouro */}
+        {/* LOGRADOURO */}
         <View style={styles.inputContainer}>
           <Text style={styles.label}>Logradouro</Text>
           <TextInput
@@ -176,7 +181,7 @@ export default function AddEndereco() {
           />
         </View>
 
-        {/* Número */}
+        {/* NÚMERO */}
         <View style={styles.inputContainer}>
           <Text style={styles.label}>Número</Text>
           <TextInput
@@ -202,7 +207,7 @@ export default function AddEndereco() {
           {loadingCep && <Text style={styles.loadingCepText}>Buscando CEP...</Text>}
         </View>
 
-        {/* Bairro */}
+        {/* BAIRRO */}
         <View style={styles.inputContainer}>
           <Text style={styles.label}>Bairro</Text>
           <TextInput
@@ -213,7 +218,7 @@ export default function AddEndereco() {
           />
         </View>
 
-        {/* Cidade */}
+        {/* CIDADE */}
         <View style={styles.inputContainer}>
           <Text style={styles.label}>Cidade</Text>
           <TextInput
@@ -224,23 +229,75 @@ export default function AddEndereco() {
           />
         </View>
 
-        {/*  Estado com dropdown */}
+        {/* ESTADO – Dropdown Android / Modal iOS */}
         <View style={styles.inputContainer}>
           <Text style={styles.label}>Estado</Text>
-          <View style={styles.pickerContainer}>
-            <Picker
-              selectedValue={estado}
-              onValueChange={(value) => setEstado(value)}
-              style={styles.picker}
-            >
-              {UFS.map((uf) => (
-                <Picker.Item key={uf.value} label={uf.label} value={uf.value} />
-              ))}
-            </Picker>
-          </View>
+
+          {Platform.OS === "ios" ? (
+            <>
+              {/* Botão estilizado */}
+              <TouchableOpacity
+                style={styles.iosPickerButton}
+                onPress={() => setUfModal(true)}
+              >
+                <Text style={styles.iosPickerButtonText}>
+                  {estado ? estado : "Selecione o estado"}
+                </Text>
+              </TouchableOpacity>
+
+              {/* Modal */}
+              <Modal
+                visible={ufModal}
+                transparent
+                animationType="slide"
+                onRequestClose={() => setUfModal(false)}
+              >
+                <Pressable
+                  style={styles.iosModalOverlay}
+                  onPress={() => setUfModal(false)}
+                >
+                  <Pressable style={styles.iosModalContent}>
+                    <View style={styles.iosModalHeader}>
+                      <TouchableOpacity onPress={() => setUfModal(false)}>
+                        <Text style={styles.iosModalCancel}>Cancelar</Text>
+                      </TouchableOpacity>
+
+                      <TouchableOpacity onPress={() => setUfModal(false)}>
+                        <Text style={styles.iosModalDone}>OK</Text>
+                      </TouchableOpacity>
+                    </View>
+
+                    <Picker
+                      selectedValue={estado}
+                      onValueChange={(value) => setEstado(value)}
+                      style={{ height: 200 }}
+                    >
+                      {UFS.map((uf) => (
+                        <Picker.Item key={uf.value} label={uf.label} value={uf.value} />
+                      ))}
+                    </Picker>
+                  </Pressable>
+                </Pressable>
+              </Modal>
+            </>
+          ) : (
+            // ANDROID PICKER NORMAL
+            <View style={styles.pickerContainer}>
+              <Picker
+                selectedValue={estado}
+                onValueChange={(value) => setEstado(value)}
+                style={styles.picker}
+                mode="dropdown"
+              >
+                {UFS.map((uf) => (
+                  <Picker.Item key={uf.value} label={uf.label} value={uf.value} />
+                ))}
+              </Picker>
+            </View>
+          )}
         </View>
 
-        {/* Botão */}
+        {/* BOTÃO */}
         <TouchableOpacity
           style={[styles.button, loading && { opacity: 0.6 }]}
           onPress={cadastrarEndereco}
@@ -316,7 +373,7 @@ const styles = StyleSheet.create({
     color: '#666',
   },
 
-  // Picker styles
+  // ANDROID PICKER
   pickerContainer: {
     borderWidth: 1,
     borderColor: '#ccc',
@@ -328,6 +385,55 @@ const styles = StyleSheet.create({
   picker: {
     height: 50,
     width: '100%',
+  },
+
+  // iOS POPUP DROPDOWN
+  iosPickerButton: {
+    height: 50,
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 12,
+    paddingHorizontal: 15,
+    justifyContent: "center",
+    backgroundColor: "#fff",
+  },
+
+  iosPickerButtonText: {
+    fontSize: 16,
+    color: "#000",
+  },
+
+  iosModalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.35)",
+    justifyContent: "flex-end",
+  },
+
+  iosModalContent: {
+    backgroundColor: "#fff",
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    paddingBottom: 10,
+  },
+
+  iosModalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "#eee",
+  },
+
+  iosModalCancel: {
+    fontSize: 16,
+    color: "#666",
+  },
+
+  iosModalDone: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#242760",
   },
 
   button: {

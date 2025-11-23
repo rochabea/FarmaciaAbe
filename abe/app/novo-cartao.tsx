@@ -10,6 +10,8 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
+  Modal,
+  Pressable,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { CartaoContext } from "./parametros/CartaoContext";
@@ -78,7 +80,6 @@ const detectBrand = (cardNumber: string): BandeiraKey => {
 
 // -------------------------
 // Ícones fixos por bandeira
-// (Ajuste os caminhos conforme seus assets)
 // -------------------------
 const brandIcons: Record<BandeiraKey, any> = {
   "": null,
@@ -86,6 +87,14 @@ const brandIcons: Record<BandeiraKey, any> = {
   mastercard: require("../assets/images/bandeiras/mastercard.jpg"),
   elo: require("../assets/images/bandeiras/elo.png"),
   amex: require("../assets/images/bandeiras/amex.png"),
+};
+
+const brandLabels: Record<BandeiraKey, string> = {
+  "": "Selecione a bandeira",
+  visa: "Visa",
+  mastercard: "MasterCard",
+  elo: "Elo",
+  amex: "American Express",
 };
 
 export default function NovoCartao() {
@@ -101,6 +110,9 @@ export default function NovoCartao() {
   // quando true, não sobrescreve bandeira via auto-detecção
   const [bandeiraManual, setBandeiraManual] = useState(false);
 
+  // modal iOS
+  const [iosPickerOpen, setIosPickerOpen] = useState(false);
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -109,9 +121,7 @@ export default function NovoCartao() {
 
   // em tempo real: se não foi escolhida manualmente, usa a detectada
   React.useEffect(() => {
-    if (!bandeiraManual) {
-      setBandeira(bandeiraDetectada);
-    }
+    if (!bandeiraManual) setBandeira(bandeiraDetectada);
   }, [bandeiraDetectada, bandeiraManual]);
 
   const handleAdicionar = async () => {
@@ -124,28 +134,23 @@ export default function NovoCartao() {
       setError("Nome do titular é obrigatório");
       return;
     }
-
     if (!numeroClean || numeroClean.length < 13) {
       setError("Número do cartão inválido");
       return;
     }
-
     if (!codigoClean || codigoClean.length < 3) {
       setError("Código de segurança inválido");
       return;
     }
-
     if (!vencClean || vencClean.length !== 5) {
       setError("Vencimento inválido. Use MM/AA.");
       return;
     }
-
     const [mm] = vencClean.split("/");
     if (!isValidMonth(mm)) {
       setError("Mês de vencimento inválido");
       return;
     }
-
     if (!bandeira) {
       setError("Bandeira não identificada. Selecione manualmente.");
       return;
@@ -229,7 +234,6 @@ export default function NovoCartao() {
                 value={numero}
                 onChangeText={(text) => {
                   setNumero(formatCardNumber(text));
-                  // se a pessoa apagar tudo, volta a permitir auto detectar
                   if (text.replace(/\D+/g, "").length === 0) {
                     setBandeiraManual(false);
                   }
@@ -252,7 +256,9 @@ export default function NovoCartao() {
             {!!bandeiraDetectada && (
               <Text style={styles.detectedLabel}>
                 Bandeira detectada:{" "}
-                <Text style={{ fontWeight: "700" }}>{bandeiraDetectada}</Text>
+                <Text style={{ fontWeight: "700" }}>
+                  {brandLabels[bandeiraDetectada]}
+                </Text>
               </Text>
             )}
           </View>
@@ -284,25 +290,82 @@ export default function NovoCartao() {
             />
           </View>
 
-          {/* Picker de bandeira (override manual) */}
+          {/* Bandeira */}
           <View style={styles.inputContainer}>
             <Text style={styles.labelBlack}>Bandeira</Text>
-            <View style={styles.pickerContainer}>
-              <Picker
-                selectedValue={bandeira}
-                onValueChange={(value) => {
-                  setBandeiraManual(true); // trava auto-detecção
-                  setBandeira(value);
-                }}
-                style={styles.picker}
-              >
-                <Picker.Item label="Selecione a bandeira" value="" />
-                <Picker.Item label="Visa" value="visa" />
-                <Picker.Item label="MasterCard" value="mastercard" />
-                <Picker.Item label="Elo" value="elo" />
-                <Picker.Item label="American Express" value="amex" />
-              </Picker>
-            </View>
+
+            {Platform.OS === "ios" ? (
+              <>
+                {/* Botão que abre modal */}
+                <TouchableOpacity
+                  style={styles.iosPickerButton}
+                  onPress={() => setIosPickerOpen(true)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.iosPickerButtonText}>
+                    {brandLabels[bandeira]}
+                  </Text>
+                </TouchableOpacity>
+
+                {/* Modal com roleta */}
+                <Modal
+                  visible={iosPickerOpen}
+                  transparent
+                  animationType="slide"
+                  onRequestClose={() => setIosPickerOpen(false)}
+                >
+                  <Pressable
+                    style={styles.iosModalOverlay}
+                    onPress={() => setIosPickerOpen(false)}
+                  >
+                    <Pressable style={styles.iosModalContent}>
+                      <View style={styles.iosModalHeader}>
+                        <TouchableOpacity onPress={() => setIosPickerOpen(false)}>
+                          <Text style={styles.iosModalCancel}>Cancelar</Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity onPress={() => setIosPickerOpen(false)}>
+                          <Text style={styles.iosModalDone}>OK</Text>
+                        </TouchableOpacity>
+                      </View>
+
+                      <Picker
+                        selectedValue={bandeira}
+                        onValueChange={(value) => {
+                          setBandeiraManual(true);
+                          setBandeira(value);
+                        }}
+                        style={{ height: 220 }}
+                      >
+                        <Picker.Item label="Selecione a bandeira" value="" />
+                        <Picker.Item label="Visa" value="visa" />
+                        <Picker.Item label="MasterCard" value="mastercard" />
+                        <Picker.Item label="Elo" value="elo" />
+                        <Picker.Item label="American Express" value="amex" />
+                      </Picker>
+                    </Pressable>
+                  </Pressable>
+                </Modal>
+              </>
+            ) : (
+              <View style={styles.pickerContainerAndroid}>
+                <Picker
+                  selectedValue={bandeira}
+                  onValueChange={(value) => {
+                    setBandeiraManual(true);
+                    setBandeira(value);
+                  }}
+                  style={styles.picker}
+                  mode="dropdown"
+                >
+                  <Picker.Item label="Selecione a bandeira" value="" />
+                  <Picker.Item label="Visa" value="visa" />
+                  <Picker.Item label="MasterCard" value="mastercard" />
+                  <Picker.Item label="Elo" value="elo" />
+                  <Picker.Item label="American Express" value="amex" />
+                </Picker>
+              </View>
+            )}
 
             {bandeiraManual && (
               <TouchableOpacity
@@ -447,7 +510,7 @@ const styles = StyleSheet.create({
   },
 
   cardInput: {
-    paddingRight: 60, // espaço pro ícone
+    paddingRight: 60,
   },
 
   brandIconBox: {
@@ -470,19 +533,65 @@ const styles = StyleSheet.create({
     color: "#242760",
   },
 
-  // Picker
-  pickerContainer: {
+  // Android Picker
+  pickerContainerAndroid: {
     borderWidth: 1,
     borderColor: "#ccc",
     borderRadius: 12,
-    overflow: "hidden",
     height: 50,
     justifyContent: "center",
+    overflow: "hidden",
+    backgroundColor: "#fff",
   },
 
   picker: {
     height: 50,
     width: "100%",
+  },
+
+  // iOS fake dropdown button
+  iosPickerButton: {
+    height: 50,
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 12,
+    paddingHorizontal: 15,
+    justifyContent: "center",
+    backgroundColor: "#fff",
+  },
+  iosPickerButtonText: {
+    fontSize: 16,
+    color: "#000",
+  },
+
+  // iOS modal
+  iosModalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.35)",
+    justifyContent: "flex-end",
+  },
+  iosModalContent: {
+    backgroundColor: "#fff",
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    paddingBottom: 10,
+  },
+  iosModalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "#eee",
+  },
+  iosModalCancel: {
+    fontSize: 16,
+    color: "#666",
+  },
+  iosModalDone: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#242760",
   },
 
   resetAutoBtn: {
