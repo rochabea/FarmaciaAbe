@@ -10,6 +10,32 @@ do pedido --- tudo em um único app moderno, rápido e responsivo.
 
 ------------------------------------------------------------------------
 
+# 📱 Publicação do Aplicativo (EAS Update)
+
+A versão mais recente do app está publicada na nuvem da Expo via EAS Update, permitindo que qualquer pessoa teste o aplicativo diretamente no celular.
+
+## Link da publicação
+
+🔗 Projeto no Expo: https://expo.dev/accounts/rochabea/projects/FarmaciaAbe  
+🔗 Versão publicada (EAS Update): https://expo.dev/accounts/rochabea/projects/FarmaciaAbe/updates/66cd0818-3db3-46a6-b5c6-bb959124c9bf
+
+
+## Como testar o app
+1. Instale o Expo Go no celular
+- Android: https://play.google.com/store/apps/details?id=host.exp.exponent
+- iOS: https://apps.apple.com/br/app/expo-go/id982107779
+2. Abra o link da publicação
+3. O Expo Go carregará automaticamente a versão atual do app
+
+- Sempre que uma nova atualização for enviada via eas update, o app será atualizado automaticamente
+
+# Comandos utilizados
+
+``` bash
+eas init
+eas update --branch main --message "Publicação inicial"
+```
+
 ## 🚀 Tecnologias Utilizadas
 
 ### **Frontend**
